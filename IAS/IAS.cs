@@ -8,6 +8,7 @@ namespace Symulator
         // use only 40 bits
         ulong AC = 0, MQ = 0;
         ushort IC = 0;
+        bool rightInstruction = false;
         ulong[] memory;
 
         int licznik = 0;
@@ -22,12 +23,16 @@ namespace Symulator
 
         uint FetchInstructionWord()
         {
-            ulong word = memory[IC >> 1];
-            bool isLeftInstruction = IC % 2 == 0;
-            IC++;
+            ulong word = memory[IC];
 
-            return (uint) 
-                (isLeftInstruction ? word & BitsMaskFirst20Bits : word >> 20);
+            if (rightInstruction)
+                IC++;
+
+            uint instruction = rightInstruction ? DecodeRightInstruction(word) : DecodeLeftInstruction(word);
+
+            rightInstruction = !rightInstruction;
+
+            return instruction;
         }
 
         ulong FetchData(ushort address) => memory[address];
@@ -38,12 +43,14 @@ namespace Symulator
 
         ushort DecodeAdress(uint instruction) => (ushort)(instruction >> 8);
 
+        uint DecodeLeftInstruction(ulong word) => (uint)word & BitsMaskFirst20Bits;
+
+        uint DecodeRightInstruction(ulong word) => (uint)(word >> 20);
+
         void Execiute(uint instruction)
         {
             byte optCode = DecodeOptCode(instruction);
             ushort address = DecodeAdress(instruction);
-
-            ulong oldInstruction;
 
             switch (optCode)
             {
@@ -65,7 +72,7 @@ namespace Symulator
                     return;
 
                 case OptCodes.LOAD_DM:
-                    AC = IntTo40ZM(-From40ZMToInt(FetchData(address)));
+                    AC = IntTo40ZM(-ZM40ToInt(FetchData(address)));
                     return;
 
                 case OptCodes.LOAD_M_M:
@@ -81,31 +88,66 @@ namespace Symulator
                 #region modyfikacja-adresu
 
                 case OptCodes.STOR_M_L:
-                    oldInstruction = memory[address >> 1] & BitsMaskFirst20Bits;
+                    {
+                        ulong oldInstruction = memory[address];
 
-                    OptCodes.Word();//todo
+                        uint left = DecodeLeftInstruction(oldInstruction);
+                        uint right = DecodeRightInstruction(oldInstruction);
+                        byte opt = DecodeOptCode(left);
+                        ushort newAddress = (ushort)(AC & BitsMaskFirst12Bits);
 
-                    //SetDataInMemory(address, );
-                    return;
+                        ulong newInstruction = OptCodes.Word(OptCodes.Instruction(opt, newAddress), right);
+
+                        SetDataInMemory(address, newInstruction);
+                        return;
+                    }
 
                 case OptCodes.STOR_M_R:
-                    oldInstruction = memory[address >> 1];
+                    {
+                        ulong oldInstruction = memory[address];
 
+                        uint left = DecodeLeftInstruction(oldInstruction);
+                        uint right = DecodeRightInstruction(oldInstruction);
+                        byte opt = DecodeOptCode(right);
+                        ushort newAddress = (ushort)(AC & BitsMaskFirst12Bits);
 
-                    //SetDataInMemory(address, );
-                    return;
+                        ulong newInstruction = OptCodes.Word(left, OptCodes.Instruction(opt, newAddress));
+
+                        SetDataInMemory(address, newInstruction);
+                        return;
+                    }
 
                 #endregion modyfikacja-adresu
 
                 #region skoki-bezwarunkowe
 
                 case OptCodes.JUMP_M_L:
-                    IC = (ushort) (FetchData(address) << 1);
+                    rightInstruction = false;
+
+                    IC = (ushort) FetchData(address);
 
                     return;
 
                 case OptCodes.JUMP_M_R:
-                    IC = (ushort)((FetchData(address) << 1) + 1);
+                    rightInstruction = true;
+
+                    IC = (ushort) FetchData(address);
+
+                    return;
+
+                // ADDED !
+
+                case OptCodes.JUMP_L:
+                    rightInstruction = false;
+
+                    IC = address;
+
+                    return;
+
+                case OptCodes.JUMP_R:
+                    rightInstruction = true;
+
+                    IC = address;
 
                     return;
 
@@ -116,16 +158,44 @@ namespace Symulator
                 case OptCodes.JUMP_P_M_L:
 
                     if (Module(AC) == 0)
-                        IC = (ushort)(FetchData(address) << 1);
+                    {
+                        rightInstruction = false;
+                        IC = (ushort) FetchData(address);
+                    }
 
                     return;
 
                 case OptCodes.JUMP_P_M_R:
 
                     if (Module(AC) == 0)
-                        IC = (ushort)((FetchData(address) << 1) + 1);
+                    {
+                        rightInstruction = true;
+                        IC = (ushort)FetchData(address);
+                    }
 
                     return;
+
+                    // ADDED !
+
+                    case OptCodes.JUMP_P_L:
+
+                        if (Module(AC) == 0)
+                        {
+                            rightInstruction = false;
+                            IC = address;
+                        }
+
+                        return;
+
+                    case OptCodes.JUMP_P_R:
+
+                        if (Module(AC) == 0)
+                        {
+                            rightInstruction = true;
+                            IC = address;
+                        }
+
+                        return;
 
                 #endregion skoki-warunkowe
 
@@ -136,33 +206,47 @@ namespace Symulator
 
                     return;
 
+                case OptCodes.ADD_M_M:
+                    AC = Add(AC, ToModuleValue(FetchData(address)));
+
+                    return;
+
                 case OptCodes.SUB_M:
                     AC = Sub(AC, FetchData(address));
 
                     return;
 
-                case OptCodes.MUL_M:
-                    BigInteger mul = new BigInteger(FetchData(address)) * MQ;
+                case OptCodes.SUB_M_M:
+                    AC = Sub(AC, ToModuleValue(FetchData(address)));
 
-                    if(mul <= ulong.MaxValue)
+                    return;
+
+                case OptCodes.MUL_M:
                     {
-                        ulong res = (ulong) mul;
-                        MQ = res & BitsMaskFirst40Bits;
-                        AC = res >> 40;
-                    } else {
-                        MQ = (ulong) (mul & BitsMaskFirst40Bits);
-                        AC = (ulong) (mul >> 40);
+                        BigInteger mul = new BigInteger(FetchData(address)) * MQ;
+
+                        if(mul <= ulong.MaxValue)
+                        {
+                            ulong res = (ulong) mul;
+                            MQ = res & BitsMaskFirst40Bits;
+                            AC = res >> 40;
+                        } else {
+                            MQ = (ulong) (mul & BitsMaskFirst40Bits);
+                            AC = (ulong) (mul >> 40);
+                        }
+
+                        return;
                     }
 
-                    return;
-
                 case OptCodes.DIV_M:
-                    ulong dataWord = FetchData(address);
+                    {
+                        ulong dataWord = FetchData(address);
 
-                    MQ = AC / dataWord;
-                    AC = AC % dataWord;
+                        MQ = AC / dataWord;
+                        AC = AC % dataWord;
 
-                    return;
+                        return;
+                    }
 
                 case OptCodes.LSH:
                     
@@ -182,7 +266,7 @@ namespace Symulator
             throw new Exception($"Operation not found {Convert.ToString(optCode, 2).PadLeft(8, '0')}");
         }
 
-        public void ManualJumpTo(ushort pos) => IC = (ushort)(pos << 1);
+        public void ManualJumpTo(ushort pos) => IC = pos;
 
         public void Step()
         {
@@ -194,7 +278,12 @@ namespace Symulator
 
         public string ToString(int manyInstructions)
         {
-            string desc = $"\n Krok: {licznik}\n IC: {IC / 2f}\n AC: {From40ZMToInt(AC)} \n MQ: {From40ZMToInt(MQ)}\n Memory:\n";
+            string desc = 
+                $"Krok: {licznik} \n " +
+                $"IC: {IC}{(rightInstruction ? 'R' : 'L')} \n " +
+                $"AC: {ZM40ToInt(AC)} \n " +
+                $"MQ: {ZM40ToInt(MQ)} \n " +
+                $"Memory:\n";
 
             for (int i = 0; i < memory.Length && i < manyInstructions; i++)
                 desc += memory[i].ToString() + '\n';
