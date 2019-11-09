@@ -3,7 +3,7 @@ using IAS;
 
 namespace Symulator_IAS
 {
-    class IAS_Program
+    class ProgramOn_IAS
     {
         public string Name;
         public short MemoryToShow;
@@ -12,7 +12,7 @@ namespace Symulator_IAS
 
         public IAS_Machine Machine;
 
-        public IAS_Program(string name, ulong[] code, ushort startPosiotion = 0, short memoryToShow = -1)
+        public ProgramOn_IAS(string name, ulong[] code, ushort startPosiotion = 0, short memoryToShow = -1)
         {
             if (code == null || code.Length == 0) throw new Exception("Code not found");
             if (startPosiotion >= code.Length) throw new Exception("Start Position not found in Code");

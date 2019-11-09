@@ -3,7 +3,7 @@ using IAS;
 
 namespace Symulator_IAS
 {
-    class Program : OptCodes
+    class Program : IAS_OptCodes
     {
         static void Main(string[] args)
         {

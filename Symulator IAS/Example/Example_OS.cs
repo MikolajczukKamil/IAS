@@ -3,13 +3,13 @@ using IAS;
 
 namespace Symulator_IAS
 {
-    class Example_OS : OptCodes
+    class Example_OS : IAS_OptCodes
     {
-        static IAS_Program[] programs = {
-            new IAS_Program("Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu", Zad1PoprawioneZNowymiSkokami(), 4),
-            new IAS_Program("Zadanie 1, suma liczb od 1 do n, poprawna wersja", Zad1Poprawne(), 4),
-            new IAS_Program("Zadanie 2, wyrażenie n(n+1)/2", Zad2(), 2),
-            new IAS_Program("Zadanie 3, n!, z wykładu", Zad3(), 4)
+        static ProgramOn_IAS[] programs = {
+            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu", Zad1PoprawioneZNowymiSkokami(), 4),
+            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, poprawna wersja", Zad1Poprawne(), 4),
+            new ProgramOn_IAS("Zadanie 2, wyrażenie n(n+1)/2", Zad2(), 2),
+            new ProgramOn_IAS("Zadanie 3, n!, z wykładu", Zad3(), 4)
         };
 
         public static void Run()
@@ -49,7 +49,7 @@ namespace Symulator_IAS
 
                     if (!stop)
                     {
-                        IAS_Program program = programs[option - 1];
+                        ProgramOn_IAS program = programs[option - 1];
 
                         Console.WriteLine(program.Name);
                         Console.Write("n = ");

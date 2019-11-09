@@ -3,13 +3,13 @@ using IAS;
 
 namespace Symulator_IAS
 {
-    class Test_Machine : OptCodes
+    class Test_Machine : IAS_OptCodes
     {
         public static void Run()
         {
             IAS_Machine machine = new IAS_Machine(Zad1());
 
-            machine.ManualJumpTo(4); // zaczynamy od 4
+            machine.ManualJumpTo(4);
 
             Console.WriteLine(machine.ToString(4));
 

@@ -4,18 +4,33 @@ using System.Numerics;
 
 namespace IAS
 {
+    public abstract class IASMachineException : Exception
+    {
+        public IASMachineException(string message) : base(message) { }
+    }
+
+    public class IASExeciuteException : IASMachineException
+    {
+        public byte OptCode;
+
+        public IASExeciuteException(string message, byte optCode) : base(message)
+        {
+            OptCode = optCode;
+        }
+    }
+
     public class IAS_Machine : IAS_Helpers
     {
         // AC
-        ulong   AC  = 0;  // 40 bit
-        ulong   MQ  = 0;  // 40 bit
+        ulong AC = 0;  // 40 bit
+        ulong MQ = 0;  // 40 bit
         // ulong   MBR = 0;  // 40 bit
 
         // CC
-        uint    IBR = 0;  // 20 bit
-        ushort  PC  = 0;  // 12 bit
-        ushort  MAR = 0;  // 12 bit
-        byte    IR  = 0;  // 8  bit
+        uint IBR = 0;  // 20 bit
+        ushort PC = 0;  // 12 bit
+        ushort MAR = 0;  // 12 bit
+        byte IR = 0;  // 8  bit
 
         IAS_Memory Memory;
 
@@ -48,7 +63,7 @@ namespace IAS
                 PC++;
 
             IBR = RightInstruction ? GetRightInstruction(MBR) : GetLeftInstruction(MBR);
-            Console.WriteLine(IBR);
+
             RightInstruction = !RightInstruction;
         }
 
@@ -63,31 +78,31 @@ namespace IAS
             switch (IR)
             {
                 #region transfer
-                case OptCodes.LOAD_MQ:
+                case IAS_OptCodes.LOAD_MQ:
                     AC = MQ;
                     return;
 
-                case OptCodes.LOAD_MQ_M:
+                case IAS_OptCodes.LOAD_MQ_M:
                     MQ = Memory.GetWord(MAR);
                     return;
 
-                case OptCodes.STOR_M:
+                case IAS_OptCodes.STOR_M:
                     SetData(MAR, AC);
                     return;
 
-                case OptCodes.LOAD_M:
+                case IAS_OptCodes.LOAD_M:
                     AC = Memory.GetWord(MAR);
                     return;
 
-                case OptCodes.LOAD_DM:
+                case IAS_OptCodes.LOAD_DM:
                     AC = IntTo40ZM(-ZM40ToInt(Memory.GetWord(MAR)));
                     return;
 
-                case OptCodes.LOAD_M_M:
+                case IAS_OptCodes.LOAD_M_M:
                     AC = Memory.GetWord(MAR) & MaskFirst39Bits;
                     return;
 
-                case OptCodes.LOAD_D_M_M:
+                case IAS_OptCodes.LOAD_D_M_M:
                     AC = (Memory.GetWord(MAR) & MaskFirst39Bits) | MaskBit40;
                     return;
 
@@ -95,7 +110,7 @@ namespace IAS
 
                 #region modyfikacja-adresu
 
-                case OptCodes.STOR_M_L:
+                case IAS_OptCodes.STOR_M_L:
                     {
                         ulong oldInstruction = Memory.GetWord(MAR);
 
@@ -104,13 +119,13 @@ namespace IAS
                         byte opt = GetOptCode(left);
                         ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = OptCodes.Word(OptCodes.Instruction(opt, newAddress), right);
+                        ulong newInstruction = IAS_OptCodes.Word(IAS_OptCodes.Instruction(opt, newAddress), right);
 
                         SetData(MAR, newInstruction);
                         return;
                     }
 
-                case OptCodes.STOR_M_R:
+                case IAS_OptCodes.STOR_M_R:
                     {
                         ulong oldInstruction = Memory.GetWord(MAR);
 
@@ -119,7 +134,7 @@ namespace IAS
                         byte opt = GetOptCode(right);
                         ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = OptCodes.Word(left, OptCodes.Instruction(opt, newAddress));
+                        ulong newInstruction = IAS_OptCodes.Word(left, IAS_OptCodes.Instruction(opt, newAddress));
 
                         SetData(MAR, newInstruction);
                         return;
@@ -129,14 +144,14 @@ namespace IAS
 
                 #region skoki-bezwarunkowe
 
-                case OptCodes.JUMP_M_L:
+                case IAS_OptCodes.JUMP_M_L:
                     RightInstruction = false;
 
                     PC = (ushort)Memory.GetWord(MAR);
 
                     return;
 
-                case OptCodes.JUMP_M_R:
+                case IAS_OptCodes.JUMP_M_R:
                     RightInstruction = true;
 
                     PC = (ushort)Memory.GetWord(MAR);
@@ -145,14 +160,14 @@ namespace IAS
 
                 // ADDED !
 
-                case OptCodes.JUMP_L:
+                case IAS_OptCodes.JUMP_L:
                     RightInstruction = false;
 
                     PC = MAR;
 
                     return;
 
-                case OptCodes.JUMP_R:
+                case IAS_OptCodes.JUMP_R:
                     RightInstruction = true;
 
                     PC = MAR;
@@ -163,7 +178,7 @@ namespace IAS
 
                 #region skoki-warunkowe
 
-                case OptCodes.JUMP_P_M_L:
+                case IAS_OptCodes.JUMP_P_M_L:
 
                     if (Sign(AC) == 0)
                     {
@@ -173,7 +188,7 @@ namespace IAS
 
                     return;
 
-                case OptCodes.JUMP_P_M_R:
+                case IAS_OptCodes.JUMP_P_M_R:
 
                     if (Sign(AC) == 0)
                     {
@@ -185,7 +200,7 @@ namespace IAS
 
                 // ADDED !
 
-                case OptCodes.JUMP_P_L:
+                case IAS_OptCodes.JUMP_P_L:
 
                     if (Sign(AC) == 0)
                     {
@@ -195,7 +210,7 @@ namespace IAS
 
                     return;
 
-                case OptCodes.JUMP_P_R:
+                case IAS_OptCodes.JUMP_P_R:
 
                     if (Sign(AC) == 0)
                     {
@@ -209,27 +224,27 @@ namespace IAS
 
                 #region arytmetyczne
 
-                case OptCodes.ADD_M:
+                case IAS_OptCodes.ADD_M:
                     AC = Add(AC, Memory.GetWord(MAR));
 
                     return;
 
-                case OptCodes.ADD_M_M:
+                case IAS_OptCodes.ADD_M_M:
                     AC = Add(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
-                case OptCodes.SUB_M:
+                case IAS_OptCodes.SUB_M:
                     AC = Sub(AC, Memory.GetWord(MAR));
 
                     return;
 
-                case OptCodes.SUB_M_M:
+                case IAS_OptCodes.SUB_M_M:
                     AC = Sub(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
-                case OptCodes.MUL_M:
+                case IAS_OptCodes.MUL_M:
                     {
                         BigInteger mul = new BigInteger(Memory.GetWord(MAR)) * MQ;
 
@@ -238,7 +253,9 @@ namespace IAS
                             ulong res = (ulong)mul;
                             MQ = res & MaskFirst40Bits;
                             AC = res >> 40;
-                        } else {
+                        }
+                        else
+                        {
                             MQ = (ulong)(mul & MaskFirst40Bits);
                             AC = (ulong)(mul >> 40);
                         }
@@ -246,7 +263,7 @@ namespace IAS
                         return;
                     }
 
-                case OptCodes.DIV_M:
+                case IAS_OptCodes.DIV_M:
                     {
                         ulong word = Memory.GetWord(MAR);
 
@@ -256,13 +273,13 @@ namespace IAS
                         return;
                     }
 
-                case OptCodes.LSH:
+                case IAS_OptCodes.LSH:
 
                     AC = AC << 1;
 
                     return;
 
-                case OptCodes.RSH:
+                case IAS_OptCodes.RSH:
 
                     AC = AC >> 1;
 
@@ -271,7 +288,7 @@ namespace IAS
                     #endregion arytmetyczne
             }
 
-            throw new Exception($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}");
+            throw new IASExeciuteException($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}", IR);
         }
 
         public override string ToString() => ToString(-1);

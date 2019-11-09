@@ -3,17 +3,26 @@ using System.Text;
 
 namespace IAS
 {
+    public class IASMemoryException : Exception
+    {
+        public int LastAddress;
+
+        public IASMemoryException(string message, int lastAddress) : base(message) {
+            LastAddress = lastAddress;
+        }
+    }
+
     class IAS_Memory
     {
-        public static ushort MaxMemorySize = 1000;
+        public static ushort MaxSize = 1000;
 
         ulong[] Instructions;
         ushort Length;
 
         public IAS_Memory(ulong[] instructions, bool copyInstructions)
         {
-            if (instructions.Length > MaxMemorySize)
-                throw new Exception($"Instraction limit has been reached, max {MaxMemorySize}, used {instructions.Length}");
+            if (instructions.Length > MaxSize)
+                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {instructions.Length}", -1);
 
             Length = (ushort)instructions.Length;
 
@@ -26,7 +35,7 @@ namespace IAS
         void CheckAddress(ushort address)
         {
             if (address >= Length)
-                throw new Exception($"Program try to access memory[{address}] but memory length is {Instructions.Length}");
+                throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Instructions.Length}", address);
         }
 
         public ulong GetWord(ushort address)
@@ -36,11 +45,11 @@ namespace IAS
             return Instructions[address];
         }
 
-        public void SetWord(ushort address, ulong data)
+        public void SetWord(ushort address, ulong word)
         {
             CheckAddress(address);
 
-            Instructions[address] = data & IAS_Helpers.MaskFirst40Bits;
+            Instructions[address] = word & IAS_Helpers.MaskFirst40Bits;
         }
 
         public override string ToString() => ToString((short)Length);

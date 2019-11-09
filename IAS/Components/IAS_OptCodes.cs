@@ -17,7 +17,7 @@ namespace IAS
      * ]
      * 
      **/
-    public class OptCodes : IAS_Helpers
+    public class IAS_OptCodes : IAS_Helpers
     {
         public const byte LOAD_MQ = 0b0001010;
         public const byte LOAD_MQ_M = 0b0001001;
