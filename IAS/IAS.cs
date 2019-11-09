@@ -1,58 +1,66 @@
 ﻿using System;
+using System.Text;
 using System.Numerics;
 
-namespace Symulator
+namespace IAS
 {
-    public class IAS : IAS_Helpers
+    public class IAS_Machine : IAS_Helpers
     {
-        // use only 40 bits
-        ulong AC = 0, MQ = 0;
-        ushort IC = 0;
-        bool rightInstruction = false;
-        ulong[] memory;
+        // AC
+        ulong   AC  = 0;  // 40 bit
+        ulong   MQ  = 0;  // 40 bit
+        // ulong   MBR = 0;  // 40 bit
 
-        int licznik = 0;
+        // CC
+        uint    IBR = 0;  // 20 bit
+        ushort  PC  = 0;  // 12 bit
+        ushort  MAR = 0;  // 12 bit
+        byte    IR  = 0;  // 8  bit
 
-        public IAS(ulong[] instructions, bool copyInstructions = true)
+        IAS_Memory Memory;
+
+        bool RightInstruction = false;
+
+        public IAS_Machine(ulong[] instructions, bool copyInstructions = true)
         {
-            memory = copyInstructions ? new ulong[instructions.Length] : memory;
-
-            for (int i = 0; i < instructions.Length; i++)
-                memory[i] = instructions[i] & BitsMaskFirst40Bits;
+            Memory = new IAS_Memory(instructions, copyInstructions);
         }
 
-        uint FetchInstructionWord()
+        public void ManualJumpTo(ushort pos)
         {
-            ulong word = memory[IC];
-
-            if (rightInstruction)
-                IC++;
-
-            uint instruction = rightInstruction ? DecodeRightInstruction(word) : DecodeLeftInstruction(word);
-
-            rightInstruction = !rightInstruction;
-
-            return instruction;
+            PC = pos;
         }
 
-        ulong FetchData(ushort address) => memory[address];
+        void SetData(ushort address, ulong data) => Memory.SetWord(address, data);
 
-        void SetDataInMemory(ushort address, ulong data) => memory[address] = data;
-
-        byte DecodeOptCode(uint instruction) => (byte)(instruction & BitsMaskFirst8Bits);
-
-        ushort DecodeAdress(uint instruction) => (ushort)(instruction >> 8);
-
-        uint DecodeLeftInstruction(ulong word) => (uint)word & BitsMaskFirst20Bits;
-
-        uint DecodeRightInstruction(ulong word) => (uint)(word >> 20);
-
-        void Execiute(uint instruction)
+        public void Step()
         {
-            byte optCode = DecodeOptCode(instruction);
-            ushort address = DecodeAdress(instruction);
+            Fetch();
+            Decode();
+            Execiute();
+        }
 
-            switch (optCode)
+        void Fetch()
+        {
+            ulong MBR = Memory.GetWord(PC);
+
+            if (RightInstruction)
+                PC++;
+
+            IBR = RightInstruction ? GetRightInstruction(MBR) : GetLeftInstruction(MBR);
+            Console.WriteLine(IBR);
+            RightInstruction = !RightInstruction;
+        }
+
+        void Decode()
+        {
+            IR = (byte)(IBR & MaskFirst8Bits);
+            MAR = (ushort)(IBR >> 8);
+        }
+
+        void Execiute()
+        {
+            switch (IR)
             {
                 #region transfer
                 case OptCodes.LOAD_MQ:
@@ -60,27 +68,27 @@ namespace Symulator
                     return;
 
                 case OptCodes.LOAD_MQ_M:
-                    MQ = FetchData(address);
+                    MQ = Memory.GetWord(MAR);
                     return;
 
                 case OptCodes.STOR_M:
-                    SetDataInMemory(address, AC);
+                    SetData(MAR, AC);
                     return;
 
                 case OptCodes.LOAD_M:
-                    AC = FetchData(address);
+                    AC = Memory.GetWord(MAR);
                     return;
 
                 case OptCodes.LOAD_DM:
-                    AC = IntTo40ZM(-ZM40ToInt(FetchData(address)));
+                    AC = IntTo40ZM(-ZM40ToInt(Memory.GetWord(MAR)));
                     return;
 
                 case OptCodes.LOAD_M_M:
-                    AC = FetchData(address) & BitsMaskFirst39Bits;
+                    AC = Memory.GetWord(MAR) & MaskFirst39Bits;
                     return;
 
                 case OptCodes.LOAD_D_M_M:
-                    AC = (FetchData(address) & BitsMaskFirst39Bits) | BitsMaskBit40;
+                    AC = (Memory.GetWord(MAR) & MaskFirst39Bits) | MaskBit40;
                     return;
 
                 #endregion transfer
@@ -89,31 +97,31 @@ namespace Symulator
 
                 case OptCodes.STOR_M_L:
                     {
-                        ulong oldInstruction = memory[address];
+                        ulong oldInstruction = Memory.GetWord(MAR);
 
-                        uint left = DecodeLeftInstruction(oldInstruction);
-                        uint right = DecodeRightInstruction(oldInstruction);
-                        byte opt = DecodeOptCode(left);
-                        ushort newAddress = (ushort)(AC & BitsMaskFirst12Bits);
+                        uint left = GetLeftInstruction(oldInstruction);
+                        uint right = GetRightInstruction(oldInstruction);
+                        byte opt = GetOptCode(left);
+                        ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
                         ulong newInstruction = OptCodes.Word(OptCodes.Instruction(opt, newAddress), right);
 
-                        SetDataInMemory(address, newInstruction);
+                        SetData(MAR, newInstruction);
                         return;
                     }
 
                 case OptCodes.STOR_M_R:
                     {
-                        ulong oldInstruction = memory[address];
+                        ulong oldInstruction = Memory.GetWord(MAR);
 
-                        uint left = DecodeLeftInstruction(oldInstruction);
-                        uint right = DecodeRightInstruction(oldInstruction);
-                        byte opt = DecodeOptCode(right);
-                        ushort newAddress = (ushort)(AC & BitsMaskFirst12Bits);
+                        uint left = GetLeftInstruction(oldInstruction);
+                        uint right = GetRightInstruction(oldInstruction);
+                        byte opt = GetOptCode(right);
+                        ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
                         ulong newInstruction = OptCodes.Word(left, OptCodes.Instruction(opt, newAddress));
 
-                        SetDataInMemory(address, newInstruction);
+                        SetData(MAR, newInstruction);
                         return;
                     }
 
@@ -122,32 +130,32 @@ namespace Symulator
                 #region skoki-bezwarunkowe
 
                 case OptCodes.JUMP_M_L:
-                    rightInstruction = false;
+                    RightInstruction = false;
 
-                    IC = (ushort) FetchData(address);
+                    PC = (ushort)Memory.GetWord(MAR);
 
                     return;
 
                 case OptCodes.JUMP_M_R:
-                    rightInstruction = true;
+                    RightInstruction = true;
 
-                    IC = (ushort) FetchData(address);
+                    PC = (ushort)Memory.GetWord(MAR);
 
                     return;
 
                 // ADDED !
 
                 case OptCodes.JUMP_L:
-                    rightInstruction = false;
+                    RightInstruction = false;
 
-                    IC = address;
+                    PC = MAR;
 
                     return;
 
                 case OptCodes.JUMP_R:
-                    rightInstruction = true;
+                    RightInstruction = true;
 
-                    IC = address;
+                    PC = MAR;
 
                     return;
 
@@ -157,82 +165,82 @@ namespace Symulator
 
                 case OptCodes.JUMP_P_M_L:
 
-                    if (Module(AC) == 0)
+                    if (Sign(AC) == 0)
                     {
-                        rightInstruction = false;
-                        IC = (ushort) FetchData(address);
+                        RightInstruction = false;
+                        PC = (ushort)Memory.GetWord(MAR);
                     }
 
                     return;
 
                 case OptCodes.JUMP_P_M_R:
 
-                    if (Module(AC) == 0)
+                    if (Sign(AC) == 0)
                     {
-                        rightInstruction = true;
-                        IC = (ushort)FetchData(address);
+                        RightInstruction = true;
+                        PC = (ushort)Memory.GetWord(MAR);
                     }
 
                     return;
 
-                    // ADDED !
+                // ADDED !
 
-                    case OptCodes.JUMP_P_L:
+                case OptCodes.JUMP_P_L:
 
-                        if (Module(AC) == 0)
-                        {
-                            rightInstruction = false;
-                            IC = address;
-                        }
+                    if (Sign(AC) == 0)
+                    {
+                        RightInstruction = false;
+                        PC = MAR;
+                    }
 
-                        return;
+                    return;
 
-                    case OptCodes.JUMP_P_R:
+                case OptCodes.JUMP_P_R:
 
-                        if (Module(AC) == 0)
-                        {
-                            rightInstruction = true;
-                            IC = address;
-                        }
+                    if (Sign(AC) == 0)
+                    {
+                        RightInstruction = true;
+                        PC = MAR;
+                    }
 
-                        return;
+                    return;
 
                 #endregion skoki-warunkowe
 
                 #region arytmetyczne
 
                 case OptCodes.ADD_M:
-                    AC = Add(AC, FetchData(address));
+                    AC = Add(AC, Memory.GetWord(MAR));
 
                     return;
 
                 case OptCodes.ADD_M_M:
-                    AC = Add(AC, ToModuleValue(FetchData(address)));
+                    AC = Add(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
                 case OptCodes.SUB_M:
-                    AC = Sub(AC, FetchData(address));
+                    AC = Sub(AC, Memory.GetWord(MAR));
 
                     return;
 
                 case OptCodes.SUB_M_M:
-                    AC = Sub(AC, ToModuleValue(FetchData(address)));
+                    AC = Sub(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
                 case OptCodes.MUL_M:
                     {
-                        BigInteger mul = new BigInteger(FetchData(address)) * MQ;
+                        BigInteger mul = new BigInteger(Memory.GetWord(MAR)) * MQ;
 
-                        if(mul <= ulong.MaxValue)
+                        if (mul <= ulong.MaxValue)
                         {
-                            ulong res = (ulong) mul;
-                            MQ = res & BitsMaskFirst40Bits;
+                            ulong res = (ulong)mul;
+                            MQ = res & MaskFirst40Bits;
                             AC = res >> 40;
                         } else {
-                            MQ = (ulong) (mul & BitsMaskFirst40Bits);
-                            AC = (ulong) (mul >> 40);
+                            MQ = (ulong)(mul & MaskFirst40Bits);
+                            AC = (ulong)(mul >> 40);
                         }
 
                         return;
@@ -240,16 +248,16 @@ namespace Symulator
 
                 case OptCodes.DIV_M:
                     {
-                        ulong dataWord = FetchData(address);
+                        ulong word = Memory.GetWord(MAR);
 
-                        MQ = AC / dataWord;
-                        AC = AC % dataWord;
+                        MQ = AC / word;
+                        AC = AC % word;
 
                         return;
                     }
 
                 case OptCodes.LSH:
-                    
+
                     AC = AC << 1;
 
                     return;
@@ -260,35 +268,26 @@ namespace Symulator
 
                     return;
 
-                #endregion arytmetyczne
+                    #endregion arytmetyczne
             }
 
-            throw new Exception($"Operation not found {Convert.ToString(optCode, 2).PadLeft(8, '0')}");
+            throw new Exception($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}");
         }
 
-        public void ManualJumpTo(ushort pos) => IC = pos;
+        public override string ToString() => ToString(-1);
 
-        public void Step()
+        public string ToString(short manyInstructions)
         {
-            licznik++;
-            Execiute(FetchInstructionWord());
-        }
+            StringBuilder description = new StringBuilder();
 
-        public override string ToString() => ToString(memory.Length);
+            description.AppendLine($" IC: {PC}{(RightInstruction ? 'R' : 'L')}");
+            description.AppendLine($" AC: {ZM40ToInt(AC)}");
+            description.AppendLine($" MQ: {ZM40ToInt(MQ)}");
+            description.AppendLine($" Memory:");
 
-        public string ToString(int manyInstructions)
-        {
-            string desc = 
-                $"Krok: {licznik} \n " +
-                $"IC: {IC}{(rightInstruction ? 'R' : 'L')} \n " +
-                $"AC: {ZM40ToInt(AC)} \n " +
-                $"MQ: {ZM40ToInt(MQ)} \n " +
-                $"Memory:\n";
+            description.AppendLine(Memory.ToString(manyInstructions));
 
-            for (int i = 0; i < memory.Length && i < manyInstructions; i++)
-                desc += memory[i].ToString() + '\n';
-            
-            return desc;
+            return description.ToString();
         }
     }
 }

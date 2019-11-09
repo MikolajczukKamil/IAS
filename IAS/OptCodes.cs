@@ -1,7 +1,22 @@
 ﻿using System;
 
-namespace Symulator
+namespace IAS
 {
+    /**
+     * 
+     * It is recommended to inherit from OptCodes
+     * 
+     * @example
+     * 
+     * [
+     *  Word(1),                   // 0
+     *  Word(
+     *    Instruction(LOAD_M, 0),  // 1L
+     *    Instruction(ADD_M, 0)    // 1R
+     *  )
+     * ]
+     * 
+     **/
     public class OptCodes : IAS_Helpers
     {
         public const byte LOAD_MQ = 0b0001010;
@@ -33,19 +48,19 @@ namespace Symulator
         public const byte LSH = 0b0010101;
         public const byte RSH = 0b0100010;
 
-        public static uint Instruction(byte optCode, ushort address)
+        public static uint Instruction(byte optCode, ushort address = 0)
         {
             uint instrution = ((uint)address) << 8;
 
             instrution |= optCode;
 
-            return instrution & BitsMaskFirst20Bits;
+            return instrution & MaskFirst20Bits;
         }
 
         public static ulong Word(uint leftInstruction, uint rightInstruction)
         {
-            leftInstruction &= BitsMaskFirst20Bits;
-            rightInstruction &= BitsMaskFirst20Bits;
+            leftInstruction &= MaskFirst20Bits;
+            rightInstruction &= MaskFirst20Bits;
 
             ulong instrution = leftInstruction;
 
@@ -54,7 +69,7 @@ namespace Symulator
             return instrution;
         }
 
-        public static ulong Word(ulong data) => data & BitsMaskFirst40Bits;
+        public static ulong Word(ulong data) => data & MaskFirst40Bits;
 
         public static ulong Word(long data)
         {
@@ -62,8 +77,7 @@ namespace Symulator
 
             data *= -1;
 
-            return ((ulong)data) & BitsMaskFirst40Bits | BitsMaskBit40;
+            return ((ulong)data) & MaskFirst40Bits | MaskBit40;
         }
     };
-
 }
