@@ -7,7 +7,8 @@ namespace IAS
     {
         public int LastAddress;
 
-        public IASMemoryException(string message, int lastAddress) : base(message) {
+        public IASMemoryException(string message, int lastAddress) : base(message)
+        {
             LastAddress = lastAddress;
         }
     }

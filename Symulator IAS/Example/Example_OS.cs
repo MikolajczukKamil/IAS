@@ -81,13 +81,13 @@ namespace Symulator_IAS
 
                 } while (!stop);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 error = true;
 
-                //Console.Clear();
+                Console.Clear();
 
-                Console.WriteLine("Maszyna IAS się zmęczyła wróć później, najprawdopodobniej zawiódł operator maszyny :(" + " " + e.Message);
+                Console.WriteLine("Maszyna IAS się zmęczyła wróć później, najprawdopodobniej zawiódł operator maszyny :(");
             }
 
             if (!error)
