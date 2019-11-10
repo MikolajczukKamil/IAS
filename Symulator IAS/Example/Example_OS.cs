@@ -6,10 +6,12 @@ namespace Symulator_IAS
     class Example_OS : IAS_OptCodes
     {
         static ProgramOn_IAS[] programs = {
-            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu", Zad1PoprawioneZNowymiSkokami(), 4),
-            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, poprawna wersja", Zad1Poprawne(), 4),
-            new ProgramOn_IAS("Zadanie 2, wyrażenie n(n+1)/2", Zad2(), 2),
-            new ProgramOn_IAS("Zadanie 3, n!, z wykładu", Zad3(), 4)
+            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu, wynik w m[3]", Zad1PoprawioneZNowymiSkokami(), 1, 4),
+            new ProgramOn_IAS("Zadanie 1, suma liczb od 1 do n, poprawna wersja, wynik w m[3]", Zad1Poprawne(), 1, 4),
+            new ProgramOn_IAS("Zadanie 2, wyrażenie n(n+1)/2, wynik w m[1]", Zad2(), 1, 2),
+            new ProgramOn_IAS("Zadanie 3, n!, z wykładu, wynik w m[3]", Zad3(), 1, 4),
+            new ProgramOn_IAS("N wyraz ciągu Fibonacciego, wynik w m[2]", Fibonacci(), 1, 5),
+            new ProgramOn_IAS("NWD, algorytm Euklidesa, wynik w m[0]", EuclideanAlgorithm(), 2, 3)
         };
 
         public static void Run()
@@ -52,9 +54,14 @@ namespace Symulator_IAS
                         ProgramOn_IAS program = programs[option - 1];
 
                         Console.WriteLine(program.Name);
-                        Console.Write("n = ");
 
-                        int n = Convert.ToInt32(Console.ReadLine());
+                        int[] n = new int[program.Wariables];
+
+                        for (int i = 0; i < program.Wariables; i++)
+                        {
+                            Console.Write($"m[{i}] = ");
+                            n[i] = Convert.ToInt32(Console.ReadLine());
+                        }
 
                         program.Reset(n);
 
@@ -222,6 +229,82 @@ namespace Symulator_IAS
                 Instruction(JUMP_L, 10),    // 10L
                 0
             )
+        };
+
+        static ulong[] Fibonacci() => new ulong[]
+        {
+            Word(5), // n <>                // 0
+            Word(1), // a                   // 1
+            Word(1), // b                   // 2
+            Word(0), // i                   // 3
+            Word(0), // tmp                 // 4
+            Word(
+                Instruction(LOAD_M, 0),     // 5L
+                Instruction(SUB_M, 14)      // 5R
+            ),
+            Word(
+                Instruction(STOR_M, 3),     // 6L
+                Instruction(JUMP_P_R, 7)    // 6R
+            ),
+            Word(
+                Instruction(JUMP_L, 7),     // 7L
+                Instruction(LOAD_M, 1)      // 7R
+            ),
+            Word(
+                Instruction(ADD_M, 2),      // 8L
+                Instruction(STOR_M, 4)      // 8R
+            ),
+            Word(
+                Instruction(LOAD_M, 2),     // 9L
+                Instruction(STOR_M, 1)      // 9R
+            ),
+            Word(
+                Instruction(LOAD_M, 4),      // 10L
+                Instruction(STOR_M, 2)       // 10R
+            ),
+            Word(
+                Instruction(LOAD_M, 3),      // 11L
+                Instruction(SUB_M, 13)       // 11R
+            ),
+            Word(
+                Instruction(STOR_M, 3),      // 12L
+                Instruction(JUMP_R, 6)       // 12R
+            ),
+            Word(1),                         // 13 = 1
+            Word(3),                         // 14 = 3
+        };
+
+        static ulong[] EuclideanAlgorithm() => new ulong[]
+        {
+            Word(35), // n <>                // 0
+            Word(10), // m <>                // 1
+            Word(0),  // tmp                 // 2
+            Word(
+                Instruction(LOAD_M, 1),      // 3L
+                Instruction(SUB_M, 9)        // 3R
+            ),
+            Word(
+                Instruction(JUMP_P_L, 5),    // 4L
+                Instruction(JUMP_R, 4)       // 4R
+            ),
+            Word(
+                Instruction(LOAD_M, 1),      // 5L
+                Instruction(STOR_M, 2)       // 5R
+            ),
+            Word(
+                Instruction(LOAD_M, 0),      // 6L
+                Instruction(DIV_M, 1)        // 6R
+            ),
+            Word(
+                Instruction(STOR_M, 1),      // 7L
+                Instruction(LOAD_M, 2)       // 7R
+            ),
+            Word(
+                Instruction(STOR_M, 0),      // 8L
+                Instruction(JUMP_L, 3)       // 8R
+            ),
+
+            Word(1),                         // 9 = 1
         };
     }
 }

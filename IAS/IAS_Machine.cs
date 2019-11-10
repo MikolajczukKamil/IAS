@@ -246,29 +246,31 @@ namespace IAS
 
                 case IAS_OptCodes.MUL_M:
                     {
-                        BigInteger mul = new BigInteger(Memory.GetWord(MAR)) * MQ;
+                        BigInteger mul = new BigInteger(ZM40ToInt(Memory.GetWord(MAR))) * ZM40ToInt(MQ);
 
-                        if (mul <= ulong.MaxValue)
-                        {
-                            ulong res = (ulong)mul;
-                            MQ = res & MaskFirst40Bits;
-                            AC = res >> 40;
-                        }
-                        else
-                        {
-                            MQ = (ulong)(mul & MaskFirst40Bits);
-                            AC = (ulong)(mul >> 40);
-                        }
+                        AC = mul < 0 ? MaskBit40 : 0;
+
+                        mul *= mul.Sign;
+
+                        MQ = (ulong)(mul & MaskFirst40Bits);
+                        AC = AC | (ulong)(mul >> 40);
 
                         return;
                     }
 
                 case IAS_OptCodes.DIV_M:
                     {
-                        ulong word = Memory.GetWord(MAR);
+                        long word = ZM40ToInt(Memory.GetWord(MAR));
 
-                        MQ = AC / word;
-                        AC = AC % word;
+                        if(word == 0)
+                        {
+                            MQ = IntTo40ZM(ZM40ToInt(MaskFirst39Bits) * Math.Sign(ZM40ToInt(AC)));
+                            AC = 0;
+                            return;
+                        }
+
+                        MQ = IntTo40ZM(ZM40ToInt(AC) / word);
+                        AC = IntTo40ZM(ZM40ToInt(AC) % word);
 
                         return;
                     }
