@@ -58,6 +58,8 @@ namespace Symulator_IAS.Example
                 do
                 {
                     Console.Clear();
+                    Console.WriteLine("SYMULATOR IAS");
+                    Console.WriteLine();
                     Console.WriteLine("Wycierz program do uruchomienia");
                     Console.WriteLine("Następnie naciśnij spację aby uruchomić kolejne polecenie");
                     Console.WriteLine("X aby wyjść");
