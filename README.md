@@ -61,7 +61,7 @@ class MyProject : IAS_Codes {
 
     Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory -  m[0-3]
 
-    while(Console.ReadKey().Key != 'x') {
+    while(Console.ReadKey().KeyChar != 'x') {
       Machine.Step();
 
       Console.WriteLine(Machine.ToString(4));
