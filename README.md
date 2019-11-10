@@ -55,15 +55,58 @@ class MyProject : IAS_Codes {
       )
     };
 
-    IAS_Machine machine = new IAS_Machine(Code);
+    IAS_Machine Machine = new IAS_Machine(Code);
 
-    machine.ManualJumpTo(4); // Program starts at m[4]
+    Machine.ManualJumpTo(4); // Program starts at m[4]
 
-    Console.WriteLine(machine.ToString(4)); // Show 4 first words in memory -  m[0-3]
+    Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory -  m[0-3]
+
+    while(Console.ReadKey().Key != 'x') {
+      Machine.Step();
+
+      Console.WriteLine(Machine.ToString(4));
+    }
   }
 }
 
 ```
+
+## Projekt IAS
+Zawiera klasę IAS_Machne przyjmującą w konstruktorze kod w postaci UInt64[], 
+oraz klasę IAS_Codes która dostarcza stałe zawierające kody instrukcji i 
+metody pozwalające łatwo pisać kod IAS
+
+### Polecenia
+- LOAD_MQ
+- LOAD_MQ_M
+- STOR_M
+- LOAD_M
+- LOAD_DM
+- LOAD_M_M
+- LOAD_D_M_M
+
+- STOR_M_L
+- STOR_M_R
+- JUMP_M_L
+- JUMP_M_R
+- JUMP_L *
+- JUMP_R *
+
+- JUMP_P_M_L
+- JUMP_P_M_R
+- JUMP_P_L *
+- JUMP_P_R *
+
+- ADD_M
+- ADD_M_M
+- SUB_M
+- SUB_M_M
+- MUL_M
+- DIV_M
+- LSH
+- RSH
+
+\* Polecenia dodane, nie są uwzględniowne w tabeli rozkazów
 
 ## Projekt Symulator_IAS
 
