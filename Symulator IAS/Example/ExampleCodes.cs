@@ -5,7 +5,7 @@ namespace Symulator_IAS.Example
 {
     class ExampleCodes : IAS_Codes
     {
-        public static ulong[] Zad1PoprawioneZNowymiSkokami() => new ulong[]
+        public static ulong[] Zad1Poprawione() => new ulong[]
 {
             Word(4), // <>                  // 0 N
             Word(1),                        // 1 ++
@@ -44,8 +44,8 @@ namespace Symulator_IAS.Example
                 Instruction(SUB_M, 1)       // 4R *
             ),
             Word(
-                Instruction(SUB_M, 1),      // 5L *
-                Instruction(STOR_M, 0)      // 5R *
+                Instruction(STOR_M, 0),      // 5L *
+                Instruction(JUMP_L, 6)       // 5R *
             ),
             Word(
                 Instruction(LOAD_M, 0),     // 6L

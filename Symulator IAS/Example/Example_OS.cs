@@ -8,7 +8,7 @@ namespace Symulator_IAS.Example
         static ProgramOn_IAS[] programs = {
             new ProgramOn_IAS(
                 "Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu, wynik w m[3]", 
-                Zad1PoprawioneZNowymiSkokami(), 1, 4
+                Zad1Poprawione(), 1, 4
                 ),
 
             new ProgramOn_IAS(
