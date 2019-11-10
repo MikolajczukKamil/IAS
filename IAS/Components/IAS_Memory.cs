@@ -1,19 +1,9 @@
 ﻿using System;
 using System.Text;
 
-namespace IAS
+namespace IAS.Components
 {
-    public class IASMemoryException : Exception
-    {
-        public int LastAddress;
-
-        public IASMemoryException(string message, int lastAddress) : base(message)
-        {
-            LastAddress = lastAddress;
-        }
-    }
-
-    class IAS_Memory
+    class IAS_Memory : IAS_Helpers
     {
         public static ushort MaxSize = 1000;
 
@@ -30,7 +20,7 @@ namespace IAS
             Instructions = copyInstructions ? new ulong[Length] : instructions;
 
             for (int i = 0; i < Length; i++)
-                Instructions[i] = instructions[i] & IAS_Helpers.MaskFirst40Bits;
+                Instructions[i] = instructions[i] & MaskFirst40Bits;
         }
 
         void CheckAddress(ushort address)
@@ -50,7 +40,7 @@ namespace IAS
         {
             CheckAddress(address);
 
-            Instructions[address] = word & IAS_Helpers.MaskFirst40Bits;
+            Instructions[address] = word & MaskFirst40Bits;
         }
 
         public override string ToString() => ToString((short)Length);
@@ -62,7 +52,7 @@ namespace IAS
             StringBuilder description = new StringBuilder();
 
             for (int i = 0; i < Length && i < manyInstructions; i++)
-                description.AppendLine($" {IAS_Helpers.ZM40ToInt(Instructions[i])}");
+                description.AppendLine($" {ZM40ToInt(Instructions[i])}");
 
             return description.ToString();
         }

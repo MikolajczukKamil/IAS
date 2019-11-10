@@ -1,9 +1,9 @@
 ﻿using System;
 using IAS;
 
-namespace Symulator_IAS
+namespace Symulator_IAS.Test
 {
-    class Test_Machine : IAS_OptCodes
+    class Test_Machine : IAS_Codes
     {
         public static void Run()
         {

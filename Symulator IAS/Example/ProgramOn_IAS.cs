@@ -1,7 +1,8 @@
 ﻿using System;
 using IAS;
+using IAS.Components;
 
-namespace Symulator_IAS
+namespace Symulator_IAS.Example
 {
     class ProgramOn_IAS
     {

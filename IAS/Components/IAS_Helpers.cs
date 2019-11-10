@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace IAS
+namespace IAS.Components
 {
-    public abstract class IAS_Helpers
+    public abstract class IAS_Helpers : IAS_Masks
     {
-        public static ulong MaskBit40 =         (ulong) 1 << 39;
-        public static byte MaskFirst8Bits =     (1 << 8) - 1;
-        public static ushort MaskFirst12Bits =  (1 << 12) - 1;
-        public static ulong MaskFirst39Bits =   ((ulong) 1 << 39) - 1;
-        public static ulong MaskFirst40Bits =   ((ulong) 1 << 40) - 1;
-        public static uint MaskFirst20Bits =    (1 << 20) - 1;
-
         public uint GetLeftInstruction(ulong word) => (uint)word & MaskFirst20Bits;
 
         public uint GetRightInstruction(ulong word) => (uint)(word >> 20);

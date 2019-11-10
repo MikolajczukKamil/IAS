@@ -1,24 +1,10 @@
 ﻿using System;
 using System.Text;
 using System.Numerics;
+using IAS.Components;
 
 namespace IAS
 {
-    public abstract class IASMachineException : Exception
-    {
-        public IASMachineException(string message) : base(message) { }
-    }
-
-    public class IASExeciuteException : IASMachineException
-    {
-        public byte OptCode;
-
-        public IASExeciuteException(string message, byte optCode) : base(message)
-        {
-            OptCode = optCode;
-        }
-    }
-
     public class IAS_Machine : IAS_Helpers
     {
         // AC
@@ -78,31 +64,31 @@ namespace IAS
             switch (IR)
             {
                 #region transfer
-                case IAS_OptCodes.LOAD_MQ:
+                case IAS_Codes.LOAD_MQ:
                     AC = MQ;
                     return;
 
-                case IAS_OptCodes.LOAD_MQ_M:
+                case IAS_Codes.LOAD_MQ_M:
                     MQ = Memory.GetWord(MAR);
                     return;
 
-                case IAS_OptCodes.STOR_M:
+                case IAS_Codes.STOR_M:
                     SetData(MAR, AC);
                     return;
 
-                case IAS_OptCodes.LOAD_M:
+                case IAS_Codes.LOAD_M:
                     AC = Memory.GetWord(MAR);
                     return;
 
-                case IAS_OptCodes.LOAD_DM:
+                case IAS_Codes.LOAD_DM:
                     AC = IntTo40ZM(-ZM40ToInt(Memory.GetWord(MAR)));
                     return;
 
-                case IAS_OptCodes.LOAD_M_M:
+                case IAS_Codes.LOAD_M_M:
                     AC = Memory.GetWord(MAR) & MaskFirst39Bits;
                     return;
 
-                case IAS_OptCodes.LOAD_D_M_M:
+                case IAS_Codes.LOAD_D_M_M:
                     AC = (Memory.GetWord(MAR) & MaskFirst39Bits) | MaskBit40;
                     return;
 
@@ -110,7 +96,7 @@ namespace IAS
 
                 #region modyfikacja-adresu
 
-                case IAS_OptCodes.STOR_M_L:
+                case IAS_Codes.STOR_M_L:
                     {
                         ulong oldInstruction = Memory.GetWord(MAR);
 
@@ -119,13 +105,13 @@ namespace IAS
                         byte opt = GetOptCode(left);
                         ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = IAS_OptCodes.Word(IAS_OptCodes.Instruction(opt, newAddress), right);
+                        ulong newInstruction = IAS_Codes.Word(IAS_Codes.Instruction(opt, newAddress), right);
 
                         SetData(MAR, newInstruction);
                         return;
                     }
 
-                case IAS_OptCodes.STOR_M_R:
+                case IAS_Codes.STOR_M_R:
                     {
                         ulong oldInstruction = Memory.GetWord(MAR);
 
@@ -134,7 +120,7 @@ namespace IAS
                         byte opt = GetOptCode(right);
                         ushort newAddress = (ushort)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = IAS_OptCodes.Word(left, IAS_OptCodes.Instruction(opt, newAddress));
+                        ulong newInstruction = IAS_Codes.Word(left, IAS_Codes.Instruction(opt, newAddress));
 
                         SetData(MAR, newInstruction);
                         return;
@@ -144,14 +130,14 @@ namespace IAS
 
                 #region skoki-bezwarunkowe
 
-                case IAS_OptCodes.JUMP_M_L:
+                case IAS_Codes.JUMP_M_L:
                     RightInstruction = false;
 
                     PC = (ushort)Memory.GetWord(MAR);
 
                     return;
 
-                case IAS_OptCodes.JUMP_M_R:
+                case IAS_Codes.JUMP_M_R:
                     RightInstruction = true;
 
                     PC = (ushort)Memory.GetWord(MAR);
@@ -160,14 +146,14 @@ namespace IAS
 
                 // ADDED !
 
-                case IAS_OptCodes.JUMP_L:
+                case IAS_Codes.JUMP_L:
                     RightInstruction = false;
 
                     PC = MAR;
 
                     return;
 
-                case IAS_OptCodes.JUMP_R:
+                case IAS_Codes.JUMP_R:
                     RightInstruction = true;
 
                     PC = MAR;
@@ -178,7 +164,7 @@ namespace IAS
 
                 #region skoki-warunkowe
 
-                case IAS_OptCodes.JUMP_P_M_L:
+                case IAS_Codes.JUMP_P_M_L:
 
                     if (Sign(AC) == 0)
                     {
@@ -188,7 +174,7 @@ namespace IAS
 
                     return;
 
-                case IAS_OptCodes.JUMP_P_M_R:
+                case IAS_Codes.JUMP_P_M_R:
 
                     if (Sign(AC) == 0)
                     {
@@ -200,7 +186,7 @@ namespace IAS
 
                 // ADDED !
 
-                case IAS_OptCodes.JUMP_P_L:
+                case IAS_Codes.JUMP_P_L:
 
                     if (Sign(AC) == 0)
                     {
@@ -210,7 +196,7 @@ namespace IAS
 
                     return;
 
-                case IAS_OptCodes.JUMP_P_R:
+                case IAS_Codes.JUMP_P_R:
 
                     if (Sign(AC) == 0)
                     {
@@ -224,27 +210,27 @@ namespace IAS
 
                 #region arytmetyczne
 
-                case IAS_OptCodes.ADD_M:
+                case IAS_Codes.ADD_M:
                     AC = Add(AC, Memory.GetWord(MAR));
 
                     return;
 
-                case IAS_OptCodes.ADD_M_M:
+                case IAS_Codes.ADD_M_M:
                     AC = Add(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
-                case IAS_OptCodes.SUB_M:
+                case IAS_Codes.SUB_M:
                     AC = Sub(AC, Memory.GetWord(MAR));
 
                     return;
 
-                case IAS_OptCodes.SUB_M_M:
+                case IAS_Codes.SUB_M_M:
                     AC = Sub(AC, Module(Memory.GetWord(MAR)));
 
                     return;
 
-                case IAS_OptCodes.MUL_M:
+                case IAS_Codes.MUL_M:
                     {
                         BigInteger mul = new BigInteger(ZM40ToInt(Memory.GetWord(MAR))) * ZM40ToInt(MQ);
 
@@ -258,7 +244,7 @@ namespace IAS
                         return;
                     }
 
-                case IAS_OptCodes.DIV_M:
+                case IAS_Codes.DIV_M:
                     {
                         long word = ZM40ToInt(Memory.GetWord(MAR));
 
@@ -275,13 +261,13 @@ namespace IAS
                         return;
                     }
 
-                case IAS_OptCodes.LSH:
+                case IAS_Codes.LSH:
 
                     AC = AC << 1;
 
                     return;
 
-                case IAS_OptCodes.RSH:
+                case IAS_Codes.RSH:
 
                     AC = AC >> 1;
 

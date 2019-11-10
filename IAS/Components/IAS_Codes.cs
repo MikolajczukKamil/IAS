@@ -1,4 +1,4 @@
-﻿using System;
+﻿using IAS.Components;
 
 namespace IAS
 {
@@ -17,7 +17,7 @@ namespace IAS
      * ]
      * 
      **/
-    public class IAS_OptCodes : IAS_Helpers
+    public class IAS_Codes
     {
         public const byte LOAD_MQ = 0b0001010;
         public const byte LOAD_MQ_M = 0b0001001;
@@ -54,13 +54,13 @@ namespace IAS
 
             instrution |= optCode;
 
-            return instrution & MaskFirst20Bits;
+            return instrution & IAS_Masks.MaskFirst20Bits;
         }
 
         public static ulong Word(uint leftInstruction, uint rightInstruction)
         {
-            leftInstruction &= MaskFirst20Bits;
-            rightInstruction &= MaskFirst20Bits;
+            leftInstruction &= IAS_Masks.MaskFirst20Bits;
+            rightInstruction &= IAS_Masks.MaskFirst20Bits;
 
             ulong instrution = leftInstruction;
 
@@ -69,7 +69,7 @@ namespace IAS
             return instrution;
         }
 
-        public static ulong Word(ulong data) => data & MaskFirst40Bits;
+        public static ulong Word(ulong data) => data & IAS_Masks.MaskFirst40Bits;
 
         public static ulong Word(long data)
         {
@@ -77,7 +77,9 @@ namespace IAS
 
             data *= -1;
 
-            return ((ulong)data) & MaskFirst40Bits | MaskBit40;
+            return ((ulong)data) & IAS_Masks.MaskFirst40Bits | IAS_Masks.MaskBit40;
         }
+
+        public static ulong Word() => 0;
     };
 }
