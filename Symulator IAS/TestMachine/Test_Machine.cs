@@ -13,10 +13,9 @@ namespace Symulator_IAS.Test
 
             Console.WriteLine(machine.ToString(4));
 
-            while (Console.ReadKey().KeyChar != 'a')
+            while (Console.ReadKey().KeyChar != 'x')
             {
                 machine.Step();
-
                 Console.WriteLine(machine.ToString(4));
             }
         }

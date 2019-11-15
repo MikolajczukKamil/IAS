@@ -5,34 +5,39 @@ using IAS.Components;
 
 namespace IAS
 {
+    using Word = UInt64;
+    using Instruction = UInt32;
+    using Address = UInt16;
+    using Operation = Byte;
+
     public class IAS_Machine : IAS_Helpers
     {
         // AC
-        ulong AC = 0;  // 40 bit
-        ulong MQ = 0;  // 40 bit
-        // ulong   MBR = 0;  // 40 bit
+        Word AC = 0;   // 40 bit
+        Word MQ = 0;   // 40 bit
+        //Word MBR = 0;  // 40 bit
 
         // CC
-        uint IBR = 0;  // 20 bit
-        ushort PC = 0;  // 12 bit
-        ushort MAR = 0;  // 12 bit
-        byte IR = 0;  // 8  bit
+        Instruction IBR = 0;  // 20 bit
+        Address PC = 0;        // 12 bit
+        Address MAR = 0;       // 12 bit
+        Operation IR = 0;     // 8  bit
 
         IAS_Memory Memory;
 
         bool RightInstruction = false;
 
-        public IAS_Machine(ulong[] instructions, bool copyInstructions = true)
+        public IAS_Machine(Word[] code, bool copy = true)
         {
-            Memory = new IAS_Memory(instructions, copyInstructions);
+            Memory = new IAS_Memory(code, copy);
         }
 
-        public void ManualJumpTo(ushort pos)
+        public void ManualJumpTo(Address address)
         {
-            PC = pos;
+            PC = address;
         }
 
-        void SetData(ushort address, ulong data) => Memory.SetWord(address, data);
+        void SetData(Address address, Word data) => Memory.SetWord(address, data);
 
         public void Step()
         {
@@ -43,7 +48,7 @@ namespace IAS
 
         void Fetch()
         {
-            ulong MBR = Memory.GetWord(PC);
+            Word MBR = Memory.GetWord(PC);
 
             if (RightInstruction)
                 PC++;
@@ -55,8 +60,8 @@ namespace IAS
 
         void Decode()
         {
-            IR = (byte)(IBR & MaskFirst8Bits);
-            MAR = (ushort)(IBR >> 8);
+            IR = (Operation)(IBR & MaskFirst8Bits);
+            MAR = (Address)(IBR >> 8);
         }
 
         void Execiute()
@@ -98,14 +103,14 @@ namespace IAS
 
                 case IAS_Codes.STOR_M_L:
                     {
-                        ulong oldInstruction = Memory.GetWord(MAR);
+                        Word oldInstruction = Memory.GetWord(MAR);
 
-                        uint left = GetLeftInstruction(oldInstruction);
-                        uint right = GetRightInstruction(oldInstruction);
-                        byte opt = GetOptCode(left);
-                        ushort newAddress = (ushort)(AC & MaskFirst12Bits);
+                        Instruction left = GetLeftInstruction(oldInstruction);
+                        Instruction right = GetRightInstruction(oldInstruction);
+                        Operation opt = GetOptCode(left);
+                        Address newAddress = (Address)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = IAS_Codes.Word(IAS_Codes.Instruction(opt, newAddress), right);
+                        Word newInstruction = IAS_Codes.Word(IAS_Codes.Instruction(opt, newAddress), right);
 
                         SetData(MAR, newInstruction);
                         return;
@@ -113,14 +118,14 @@ namespace IAS
 
                 case IAS_Codes.STOR_M_R:
                     {
-                        ulong oldInstruction = Memory.GetWord(MAR);
+                        Word oldInstruction = Memory.GetWord(MAR);
 
-                        uint left = GetLeftInstruction(oldInstruction);
-                        uint right = GetRightInstruction(oldInstruction);
-                        byte opt = GetOptCode(right);
-                        ushort newAddress = (ushort)(AC & MaskFirst12Bits);
+                        Instruction left = GetLeftInstruction(oldInstruction);
+                        Instruction right = GetRightInstruction(oldInstruction);
+                        Operation opt = GetOptCode(right);
+                        Address newAddress = (Address)(AC & MaskFirst12Bits);
 
-                        ulong newInstruction = IAS_Codes.Word(left, IAS_Codes.Instruction(opt, newAddress));
+                        Word newInstruction = IAS_Codes.Word(left, IAS_Codes.Instruction(opt, newAddress));
 
                         SetData(MAR, newInstruction);
                         return;
@@ -133,14 +138,14 @@ namespace IAS
                 case IAS_Codes.JUMP_M_L:
                     RightInstruction = false;
 
-                    PC = (ushort)Memory.GetWord(MAR);
+                    PC = (Address)Memory.GetWord(MAR);
 
                     return;
 
                 case IAS_Codes.JUMP_M_R:
                     RightInstruction = true;
 
-                    PC = (ushort)Memory.GetWord(MAR);
+                    PC = (Address)Memory.GetWord(MAR);
 
                     return;
 
@@ -169,7 +174,7 @@ namespace IAS
                     if (Sign(AC) == 0)
                     {
                         RightInstruction = false;
-                        PC = (ushort)Memory.GetWord(MAR);
+                        PC = (Address)Memory.GetWord(MAR);
                     }
 
                     return;
@@ -179,7 +184,7 @@ namespace IAS
                     if (Sign(AC) == 0)
                     {
                         RightInstruction = true;
-                        PC = (ushort)Memory.GetWord(MAR);
+                        PC = (Address)Memory.GetWord(MAR);
                     }
 
                     return;
@@ -238,25 +243,25 @@ namespace IAS
 
                         mul *= mul.Sign;
 
-                        MQ = (ulong)(mul & MaskFirst40Bits);
-                        AC = AC | (ulong)(mul >> 40);
+                        MQ = (Word)(mul & MaskFirst40Bits);
+                        AC = AC | (Word)(mul >> 40);
 
                         return;
                     }
 
                 case IAS_Codes.DIV_M:
                     {
-                        long word = ZM40ToInt(Memory.GetWord(MAR));
+                        long divisor = ZM40ToInt(Memory.GetWord(MAR));
 
-                        if(word == 0)
+                        if(divisor == 0)
                         {
                             MQ = IntTo40ZM(ZM40ToInt(MaskFirst39Bits) * Math.Sign(ZM40ToInt(AC)));
-                            AC = 0;
+                            AC = MaskFirst40Bits;
                             return;
                         }
 
-                        MQ = IntTo40ZM(ZM40ToInt(AC) / word);
-                        AC = IntTo40ZM(ZM40ToInt(AC) % word);
+                        MQ = IntTo40ZM(ZM40ToInt(AC) / divisor);
+                        AC = IntTo40ZM(ZM40ToInt(AC) % divisor);
 
                         return;
                     }
@@ -279,9 +284,11 @@ namespace IAS
             throw new IASExeciuteException($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}", IR);
         }
 
+        public Word[] GetMemory(bool copy = true) => Memory.GetInstructions(copy);
+
         public override string ToString() => ToString(-1);
 
-        public string ToString(short manyInstructions)
+        public string ToString(int manyInstructions)
         {
             StringBuilder description = new StringBuilder();
 

@@ -3,9 +3,12 @@ using IAS;
 
 namespace Symulator_IAS.Example
 {
+    using IASWord = UInt64;
+    using IASInstruction = UInt32;
+
     class ExampleCodes : IAS_Codes
     {
-        public static ulong[] Zad1Poprawione() => new ulong[]
+        public static IASWord[] Zad1Poprawione() => new IASWord[]
 {
             Word(4), // <>                  // 0 N
             Word(1),                        // 1 ++
@@ -33,7 +36,7 @@ namespace Symulator_IAS.Example
             )
 };
 
-        public static ulong[] Zad1Poprawne() => new ulong[]
+        public static IASWord[] Zad1Poprawne() => new IASWord[]
         {
             Word(4), // <>                  // 0 N
             Word(1),                        // 1 ++
@@ -69,7 +72,7 @@ namespace Symulator_IAS.Example
             )
         };
 
-        public static ulong[] Zad2() => new ulong[]
+        public static IASWord[] Zad2() => new IASWord[]
         {
             Word(4), // <>                  // 0 N
             Word(1),                        // 1, W
@@ -95,7 +98,7 @@ namespace Symulator_IAS.Example
                 )
         };
 
-        public static ulong[] Zad3() => new ulong[]
+        public static IASWord[] Zad3() => new IASWord[]
         {
             Word(5), // <>                  // 0 N
             Word(1),                        // 1 ++
@@ -131,7 +134,7 @@ namespace Symulator_IAS.Example
             )
         };
 
-        public static ulong[] Fibonacci() => new ulong[]
+        public static IASWord[] Fibonacci() => new IASWord[]
         {
             Word(5), // n <>                // 0
             Word(1), // a                   // 1
@@ -174,7 +177,7 @@ namespace Symulator_IAS.Example
             Word(3),                         // 14 = 3
         };
 
-        public static ulong[] Squere() => new ulong[]
+        public static IASWord[] Squere() => new IASWord[]
         {
             Word(5), // n <>                // 0
             Word(
@@ -191,7 +194,7 @@ namespace Symulator_IAS.Example
             )
         };
 
-        public static ulong[] EuclideanAlgorithm() => new ulong[]
+        public static IASWord[] EuclideanAlgorithm() => new IASWord[]
         {
             Word(35), // n <>                // 0
             Word(10), // m <>                // 1
@@ -224,7 +227,7 @@ namespace Symulator_IAS.Example
             Word(1),                         // 9 = 1
         };
 
-        public static ulong[] SumSquereTo() => new ulong[]
+        public static IASWord[] SumSquereTo() => new IASWord[]
         {
             Word(5), // n <>                // 0 // n = <>
             Word(0),                        // 1 // Sum = 0

@@ -3,56 +3,68 @@ using System.Text;
 
 namespace IAS.Components
 {
+    using Word = UInt64;
+    using Address = UInt16;
+
     class IAS_Memory : IAS_Helpers
     {
-        public static ushort MaxSize = 1000;
+        public static Address MaxSize = 1000;
 
-        ulong[] Instructions;
-        ushort Length;
+        Word[] Memory;
+        Address Length;
 
-        public IAS_Memory(ulong[] instructions, bool copyInstructions)
+        public IAS_Memory(Word[] code, bool copy)
         {
-            if (instructions.Length > MaxSize)
-                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {instructions.Length}", -1);
+            if (code.Length > MaxSize)
+                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", -1);
 
-            Length = (ushort)instructions.Length;
+            Length = (Address)code.Length;
 
-            Instructions = copyInstructions ? new ulong[Length] : instructions;
+            Memory = copy ? new Word[Length] : code;
 
             for (int i = 0; i < Length; i++)
-                Instructions[i] = instructions[i] & MaskFirst40Bits;
+                Memory[i] = code[i] & MaskFirst40Bits;
         }
 
-        void CheckAddress(ushort address)
+        void CheckAddress(Address address)
         {
             if (address >= Length)
-                throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Instructions.Length}", address);
+                throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Memory.Length}", address);
         }
 
-        public ulong GetWord(ushort address)
+        public Word GetWord(Address address)
         {
             CheckAddress(address);
 
-            return Instructions[address];
+            return Memory[address];
         }
 
-        public void SetWord(ushort address, ulong word)
+        public void SetWord(Address address, Word word)
         {
             CheckAddress(address);
 
-            Instructions[address] = word & MaskFirst40Bits;
+            Memory[address] = word & MaskFirst40Bits;
         }
 
-        public override string ToString() => ToString((short)Length);
-
-        public string ToString(short manyInstructions)
+        public Word[] GetInstructions(bool copy)
         {
-            if (manyInstructions < 0) manyInstructions = short.MaxValue;
+            if (!copy) return Memory;
 
+            Word[] copyOfMemory = new Word[Length];
+
+            Array.Copy(Memory, copyOfMemory, Length);
+
+            return copyOfMemory;
+        }
+
+        public override string ToString() => ToString(Length);
+
+        public string ToString(int manyInstructions)
+        {
             StringBuilder description = new StringBuilder();
 
             for (int i = 0; i < Length && i < manyInstructions; i++)
-                description.AppendLine($" {ZM40ToInt(Instructions[i])}");
+                description.AppendLine($" {ZM40ToInt(Memory[i])}");
 
             return description.ToString();
         }
