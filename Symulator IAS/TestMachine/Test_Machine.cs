@@ -20,7 +20,7 @@ namespace Symulator_IAS.Test
             }
         }
 
-        static ulong[] Zad1() => new ulong[]
+        static long[] Zad1() => new long[]
         {
             Word(4), // <>                  // 0 N
             Word(1),                        // 1 ++
