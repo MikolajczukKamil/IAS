@@ -19,7 +19,7 @@ using IAS;
 
 class MyProject : IAS_Codes {
   static void Main() {
-    ulong[] Code = new ulong[]
+    long[] Code = new long[]
     {
       Word(5), // <>                // 0 N
       Word(1),                      // 1 ++
