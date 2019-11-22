@@ -3,7 +3,7 @@ using IAS;
 
 namespace Symulator_IAS.Example
 {
-    using IASWord = UInt64;
+    using IASWord = Int64;
     using IASInstruction = UInt32;
 
     class ExampleCodes : IAS_Codes

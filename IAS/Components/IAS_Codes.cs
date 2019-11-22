@@ -3,7 +3,7 @@ using IAS.Components;
 
 namespace IAS
 {
-    using Word = UInt64;
+    using Word = Int64;
     using Instruction = UInt32;
     using Address = UInt16;
     using Operation = Byte;
@@ -75,16 +75,7 @@ namespace IAS
             return instrution;
         }
 
-        public static Word Word(Word data) => data & IAS_Masks.MaskFirst40Bits;
-
-        public static Word Word(long data)
-        {
-            if (data >= 0) return Word((Word)data);
-
-            data *= -1;
-
-            return ((Word)data) & IAS_Masks.MaskFirst40Bits | IAS_Masks.MaskBit40;
-        }
+        public static Word Word(long data) => IAS_Helpers.To40BitsValue(data);
 
         public static Word Word() => 0;
     };

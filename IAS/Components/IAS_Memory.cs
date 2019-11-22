@@ -3,7 +3,7 @@ using System.Text;
 
 namespace IAS.Components
 {
-    using Word = UInt64;
+    using Word = Int64;
     using Address = UInt16;
 
     class IAS_Memory : IAS_Helpers
@@ -15,15 +15,15 @@ namespace IAS.Components
 
         public IAS_Memory(Word[] code, bool copy)
         {
-            if (code.Length > MaxSize)
-                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", -1);
-
             Length = (Address)code.Length;
+
+            if (Length > MaxSize)
+                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", -1);
 
             Memory = copy ? new Word[Length] : code;
 
             for (int i = 0; i < Length; i++)
-                Memory[i] = code[i] & MaskFirst40Bits;
+                Memory[i] = To40BitsValue(code[i]);
         }
 
         void CheckAddress(Address address)
@@ -43,7 +43,7 @@ namespace IAS.Components
         {
             CheckAddress(address);
 
-            Memory[address] = word & MaskFirst40Bits;
+            Memory[address] = To40BitsValue(word);
         }
 
         public Word[] GetInstructions(bool copy)
@@ -64,7 +64,7 @@ namespace IAS.Components
             StringBuilder description = new StringBuilder();
 
             for (int i = 0; i < Length && i < manyInstructions; i++)
-                description.AppendLine($" {ZM40ToInt(Memory[i])}");
+                description.AppendLine($" {Memory[i]}");
 
             return description.ToString();
         }

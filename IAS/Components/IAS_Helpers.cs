@@ -2,28 +2,40 @@
 
 namespace IAS.Components
 {
-    using Word = UInt64;
+    using Word = Int64;
     using Instruction = UInt32;
     using Operation = Byte;
 
     public abstract class IAS_Helpers : IAS_Masks
     {
-        public Instruction GetLeftInstruction(Word word) => (Instruction)word & MaskFirst20Bits;
+        public static Word MaxValue = MaskFirst39Bits;
+        public static Word MinValue = ~MaxValue;
 
-        public Instruction GetRightInstruction(Word word) => (Instruction)(word >> 20);
+        public static Instruction GetLeftInstruction(Word word) => (Instruction)word & MaskFirst20Bits;
 
-        public Operation GetOptCode(Instruction instruction) => (Operation)(instruction & MaskFirst8Bits);
+        public static Instruction GetRightInstruction(Word word) => (Instruction)(word >> 20);
 
-        public static Word IntTo40ZM(long a) => ((Word)Math.Abs(a) & MaskFirst39Bits) | (a >= 0 ? 0 : MaskBit40);
+        public static Operation GetOptCode(Instruction instruction) => (Operation)(instruction & MaskFirst8Bits);
 
-        public static long ZM40ToInt(Word a) => (long)Module(a) * (Sign(a) == 0 ? 1 : -1);
+        public static Word To40BitsValue(Word a)
+        {
+            // overflow simulation
 
-        public static byte Sign(Word data) => (byte)((data >> 39) & 1);
+            if (a > MaxValue)
+            {
+                long diff = a - MaxValue;
 
-        public static Word Module(Word a) => a & (~MaskBit40);
+                return MinValue + (diff - 1);
+            }
 
-        public static Word Add(Word a, Word b) => IntTo40ZM(ZM40ToInt(a) + ZM40ToInt(b));
+            if(a < MinValue)
+            {
+                long diff = MinValue - a;
 
-        public static Word Sub(Word a, Word b) => IntTo40ZM(ZM40ToInt(a) - ZM40ToInt(b));
+                return MaxValue - (diff - 1);
+            }
+
+            return a;
+        }
     }
 }

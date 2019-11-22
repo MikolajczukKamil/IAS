@@ -5,7 +5,7 @@ using IAS.Components;
 
 namespace IAS
 {
-    using Word = UInt64;
+    using Word = Int64;
     using Instruction = UInt32;
     using Address = UInt16;
     using Operation = Byte;
@@ -13,15 +13,15 @@ namespace IAS
     public class IAS_Machine : IAS_Helpers
     {
         // AC
-        Word AC = 0;   // 40 bit
-        Word MQ = 0;   // 40 bit
-        //Word MBR = 0;  // 40 bit
+        Word AC = 0;            // 40 bit
+        Word MQ = 0;            // 40 bit
+        // Word MBR = 0;           // 40 bit
 
         // CC
-        Instruction IBR = 0;  // 20 bit
-        Address PC = 0;        // 12 bit
-        Address MAR = 0;       // 12 bit
-        Operation IR = 0;     // 8  bit
+        Instruction IBR = 0;    // 20 bit
+        Address PC = 0;         // 12 bit
+        Address MAR = 0;        // 12 bit
+        Operation IR = 0;       //  8 bit
 
         IAS_Memory Memory;
 
@@ -86,15 +86,15 @@ namespace IAS
                     return;
 
                 case IAS_Codes.LOAD_DM:
-                    AC = IntTo40ZM(-ZM40ToInt(Memory.GetWord(MAR)));
+                    AC = -Memory.GetWord(MAR);
                     return;
 
                 case IAS_Codes.LOAD_M_M:
-                    AC = Memory.GetWord(MAR) & MaskFirst39Bits;
+                    AC = Math.Abs(Memory.GetWord(MAR));
                     return;
 
                 case IAS_Codes.LOAD_D_M_M:
-                    AC = (Memory.GetWord(MAR) & MaskFirst39Bits) | MaskBit40;
+                    AC = -Math.Abs(Memory.GetWord(MAR));
                     return;
 
                 #endregion transfer
@@ -171,7 +171,7 @@ namespace IAS
 
                 case IAS_Codes.JUMP_P_M_L:
 
-                    if (Sign(AC) == 0)
+                    if (AC >= 0)
                     {
                         RightInstruction = false;
                         PC = (Address)Memory.GetWord(MAR);
@@ -181,7 +181,7 @@ namespace IAS
 
                 case IAS_Codes.JUMP_P_M_R:
 
-                    if (Sign(AC) == 0)
+                    if (AC >= 0)
                     {
                         RightInstruction = true;
                         PC = (Address)Memory.GetWord(MAR);
@@ -193,7 +193,7 @@ namespace IAS
 
                 case IAS_Codes.JUMP_P_L:
 
-                    if (Sign(AC) == 0)
+                    if (AC >= 0)
                     {
                         RightInstruction = false;
                         PC = MAR;
@@ -203,7 +203,7 @@ namespace IAS
 
                 case IAS_Codes.JUMP_P_R:
 
-                    if (Sign(AC) == 0)
+                    if (AC >= 0)
                     {
                         RightInstruction = true;
                         PC = MAR;
@@ -216,65 +216,58 @@ namespace IAS
                 #region arytmetyczne
 
                 case IAS_Codes.ADD_M:
-                    AC = Add(AC, Memory.GetWord(MAR));
+                    AC = To40BitsValue(AC + Memory.GetWord(MAR));
 
                     return;
 
                 case IAS_Codes.ADD_M_M:
-                    AC = Add(AC, Module(Memory.GetWord(MAR)));
+                    AC = To40BitsValue(AC + Math.Abs(Memory.GetWord(MAR)));
 
                     return;
 
                 case IAS_Codes.SUB_M:
-                    AC = Sub(AC, Memory.GetWord(MAR));
+                    AC = To40BitsValue(AC - Memory.GetWord(MAR));
 
                     return;
 
                 case IAS_Codes.SUB_M_M:
-                    AC = Sub(AC, Module(Memory.GetWord(MAR)));
+                    AC = To40BitsValue(AC - Math.Abs(Memory.GetWord(MAR)));
 
                     return;
 
                 case IAS_Codes.MUL_M:
                     {
-                        BigInteger mul = new BigInteger(ZM40ToInt(Memory.GetWord(MAR))) * ZM40ToInt(MQ);
+                        BigInteger mul = new BigInteger(Memory.GetWord(MAR)) * MQ;
 
-                        AC = mul < 0 ? MaskBit40 : 0;
+                        MQ = To40BitsValue((Word)(mul & MaskFirst40Bits));
 
-                        mul *= mul.Sign;
-
-                        MQ = (Word)(mul & MaskFirst40Bits);
-                        AC = AC | (Word)(mul >> 40);
+                        AC = To40BitsValue((Word)(mul >> 40));
 
                         return;
                     }
 
                 case IAS_Codes.DIV_M:
                     {
-                        long divisor = ZM40ToInt(Memory.GetWord(MAR));
+                        long divisor = Memory.GetWord(MAR);
 
                         if(divisor == 0)
-                        {
-                            MQ = IntTo40ZM(ZM40ToInt(MaskFirst39Bits) * Math.Sign(ZM40ToInt(AC)));
-                            AC = MaskFirst40Bits;
-                            return;
-                        }
+                            throw new IASExeciuteException("Divide by zero", IR);
 
-                        MQ = IntTo40ZM(ZM40ToInt(AC) / divisor);
-                        AC = IntTo40ZM(ZM40ToInt(AC) % divisor);
+                        MQ = AC / divisor;
+                        AC = AC % divisor;
 
                         return;
                     }
 
                 case IAS_Codes.LSH:
 
-                    AC = AC << 1;
+                    AC <<= 1;
 
                     return;
 
                 case IAS_Codes.RSH:
 
-                    AC = AC >> 1;
+                    AC >>= 1;
 
                     return;
 
@@ -293,8 +286,8 @@ namespace IAS
             StringBuilder description = new StringBuilder();
 
             description.AppendLine($" IC: {PC}{(RightInstruction ? 'R' : 'L')}");
-            description.AppendLine($" AC: {ZM40ToInt(AC)}");
-            description.AppendLine($" MQ: {ZM40ToInt(MQ)}");
+            description.AppendLine($" AC: {AC}");
+            description.AppendLine($" MQ: {MQ}");
             description.AppendLine($" Memory:");
 
             description.AppendLine(Memory.ToString(manyInstructions));
