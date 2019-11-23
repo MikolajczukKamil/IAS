@@ -9,93 +9,94 @@ namespace Symulator_IAS.Example
     class ExampleCodes : IAS_Codes
     {
         public static IASWord[] Zad1Poprawione() => new IASWord[]
-{
-            Word(4), // <>                  // 0 N
-            Word(1),                        // 1 ++
-            Word(0),                        // 2 i
-            Word(0),                        // 3 X
+        {
+            Word(4), // n = M(0) <>         // 0
+            Word(1),                        // 1 // const 1 = M(1)
+            Word(0), // i = M(2)            // 2
+            Word(0), // x = M(3)            // 3
             Word(
-                Instruction(LOAD_M, 0),     // 4L
-                Instruction(SUB_M, 2)       // 4R
+                Instruction(LOAD_M, 0),     // 4L // AC = n ; while(n - i >= 0)
+                Instruction(SUB_M, 2)       // 4R // AC = AC - i
             ),
             Word(
-                Instruction(JUMP_P_L, 6),   // 5L
-                Instruction(JUMP_R, 5)      // 5R
+                Instruction(JUMP_P_L, 6),   // 5L // if(AC >= 0) jump to 6L
+                Instruction(JUMP_R, 5)      // 5R // else koniec = inf loop = jump to 5R
             ),
             Word(
-                Instruction(LOAD_M, 2),     // 6L
-                Instruction(ADD_M, 1)       // 6R
+                Instruction(LOAD_M, 2),     // 6L // AC = i
+                Instruction(ADD_M, 1)       // 6R // AC++
             ),
             Word(
-                Instruction(STOR_M, 2),     // 7L
-                Instruction(ADD_M, 3)       // 7R
+                Instruction(STOR_M, 2),     // 7L // i = AC
+                Instruction(ADD_M, 3)       // 7R // AC += x
             ),
             Word(
-                Instruction(STOR_M, 3),     // 8L
-                Instruction(JUMP_L, 4)      // 8R
+                Instruction(STOR_M, 3),     // 8L // x = AC
+                Instruction(JUMP_L, 4)      // 8R // end while;
             )
-};
+        };
 
         public static IASWord[] Zad1Poprawne() => new IASWord[]
         {
-            Word(4), // <>                  // 0 N
-            Word(1),                        // 1 ++
-            Word(0),                        // 2 i
-            Word(0),                        // 3 X
+            // * Poprawka jako słowo 4 i 5
+            Word(4), // n = M(0) <>         // 0
+            Word(1),                        // 1 // const 1 = M(1)
+            Word(0), // i = M(2)            // 2
+            Word(0), // x = M(3)            // 3
             Word(
-                Instruction(LOAD_M, 0),     // 4L *
-                Instruction(SUB_M, 1)       // 4R *
+                Instruction(LOAD_M, 0),     // 4L // AC = n  *
+                Instruction(SUB_M, 1)       // 4R // AC --   *
             ),
             Word(
-                Instruction(STOR_M, 0),      // 5L *
-                Instruction(JUMP_L, 6)       // 5R *
+                Instruction(STOR_M, 0),      // 5L // n = AC *
+                Instruction(JUMP_L, 6)       // 5R // *
             ),
             Word(
-                Instruction(LOAD_M, 0),     // 6L
-                Instruction(SUB_M, 2)       // 6R
+                Instruction(LOAD_M, 0),     // 6L // AC = n ; while(n - i >= 0)
+                Instruction(SUB_M, 2)       // 6R // AC = AC - i
             ),
             Word(
-                Instruction(JUMP_P_L, 8),   // 7L
-                Instruction(JUMP_R, 7)      // 7R
+                Instruction(JUMP_P_L, 6+2), // 7L // if(AC >= 0) jump to 8L
+                Instruction(JUMP_R, 5+2)    // 7R // else koniec = inf loop = jump to 7R
             ),
             Word(
-                Instruction(LOAD_M, 2),     // 8L
-                Instruction(ADD_M, 1)       // 8R
+                Instruction(LOAD_M, 2),     // 8L // AC = i
+                Instruction(ADD_M, 1)       // 8R // AC++
             ),
             Word(
-                Instruction(STOR_M, 2),     // 9L
-                Instruction(ADD_M, 3)       // 9R
+                Instruction(STOR_M, 2),     // 9L // i = AC
+                Instruction(ADD_M, 3)       // 9R // AC += x
             ),
             Word(
-                Instruction(STOR_M, 3),     // 10L
-                Instruction(JUMP_L, 6)      // 10R
+                Instruction(STOR_M, 3),     // 10L // x = AC
+                Instruction(JUMP_L, 4+2)    // 10R // end while;
             )
         };
 
         public static IASWord[] Zad2() => new IASWord[]
         {
-            Word(4), // <>                  // 0 N
-            Word(1),                        // 1, W
+            Word(4), // n = M(0) <>         // 0
+            Word(1), // wynik = M(1)        // 1
             Word(
-                Instruction(LOAD_M, 0),     // 2L
-                Instruction(ADD_M, 1)       // 2R
-                ),
+                Instruction(LOAD_M, 0),     // 2L // AC = n
+                Instruction(ADD_M, 1)       // 2R // AC += wynik
+            ),
             Word(
-                Instruction(STOR_M, 1),     // 3L
-                Instruction(LOAD_MQ_M, 1)   // 3R
-                ),
+                Instruction(STOR_M, 1),     // 3L // wynik = AC
+                Instruction(LOAD_MQ_M, 1)   // 3R // MQ = wynik
+            ),
             Word(
-                Instruction(MUL_M, 0),      // 4L
-                Instruction(LOAD_MQ)        // 4R
-                ),
+                Instruction(MUL_M, 0),      // 4L // MQ *= n
+                Instruction(LOAD_MQ)        // 4R // AC = MQ
+            ),
             Word(
-                Instruction(RSH),           // 5L
-                Instruction(STOR_M, 1)      // 5R
-                ),
+                Instruction(RSH),           // 5L // AC >>= 1
+                Instruction(STOR_M, 1)      // 5R // wynik = AC
+            ),
             Word(
-                Instruction(JUMP_L, 6),     // 6L
+                Instruction(JUMP_L, 6),     // 6L // koniec = inf loop = jump to 6L
                 0
-                )
+            )
         };
 
         public static IASWord[] Zad3() => new IASWord[]
@@ -196,35 +197,34 @@ namespace Symulator_IAS.Example
 
         public static IASWord[] EuclideanAlgorithm() => new IASWord[]
         {
-            Word(35), // n <>                // 0
-            Word(10), // m <>                // 1
-            Word(0),  // tmp                 // 2
+            Word(35), // n = M(0) <>         // 0
+            Word(10), // m = M(1) <>         // 1
+            Word(0),  // tmp = M(2)          // 2
+            Word(1),                         // 3 // const 1 = M(3)
             Word(
-                Instruction(LOAD_M, 1),      // 3L
-                Instruction(SUB_M, 9)        // 3R
+                Instruction(LOAD_M, 1),      // 4L // AC = m ; while(m - 1 >= 0)
+                Instruction(SUB_M, 3)        // 4R // AC --
             ),
             Word(
-                Instruction(JUMP_P_L, 5),    // 4L
-                Instruction(JUMP_R, 4)       // 4R
+                Instruction(JUMP_P_L, 6),    // 5L // if(AC >= 0) jump to 6L
+                Instruction(JUMP_R, 5)       // 5R // else koniec = inf loop = jump to 5R
             ),
             Word(
-                Instruction(LOAD_M, 1),      // 5L
-                Instruction(STOR_M, 2)       // 5R
+                Instruction(LOAD_M, 1),      // 6L // AC = m
+                Instruction(STOR_M, 2)       // 6R // tmp = AC
             ),
             Word(
-                Instruction(LOAD_M, 0),      // 6L
-                Instruction(DIV_M, 1)        // 6R
+                Instruction(LOAD_M, 0),      // 7L // AC = n
+                Instruction(DIV_M, 1)        // 7R // AC = AC % m
             ),
             Word(
-                Instruction(STOR_M, 1),      // 7L
-                Instruction(LOAD_M, 2)       // 7R
+                Instruction(STOR_M, 1),      // 8L // m = AC
+                Instruction(LOAD_M, 2)       // 8R // AC = tmp
             ),
             Word(
-                Instruction(STOR_M, 0),      // 8L
-                Instruction(JUMP_L, 3)       // 8R
-            ),
-
-            Word(1),                         // 9 = 1
+                Instruction(STOR_M, 0),      // 9L // n = AC
+                Instruction(JUMP_L, 4)       // 9R // end while;
+            )
         };
 
         public static IASWord[] SumSquereTo() => new IASWord[]

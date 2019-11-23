@@ -38,7 +38,7 @@ namespace Symulator_IAS.Example
 
             new ProgramOn_IAS(
                 "NWD, algorytm Euklidesa, wynik w m[0]", 
-                EuclideanAlgorithm(), 2, 3
+                EuclideanAlgorithm(), 2, 4
                 ),
 
             new ProgramOn_IAS(
@@ -88,7 +88,7 @@ namespace Symulator_IAS.Example
                     {
                         ProgramOn_IAS program = programs[option - 1];
 
-                        Console.WriteLine(program.Name);
+                        Console.WriteLine($"{option}) {program.Name}");
 
                         int[] n = new int[program.Wariables];
 
@@ -123,13 +123,14 @@ namespace Symulator_IAS.Example
 
                 } while (!stop);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 error = true;
 
                 Console.Clear();
 
                 Console.WriteLine("Maszyna IAS się zmęczyła wróć później, najprawdopodobniej zawiódł operator maszyny :(");
+                Console.WriteLine(e.Message);
             }
 
             if (!error)

@@ -15,7 +15,7 @@ namespace IAS.Components
 
         public static Instruction GetRightInstruction(Word word) => (Instruction)(word >> 20);
 
-        public static Operation GetOptCode(Instruction instruction) => (Operation)(instruction & MaskFirst8Bits);
+        public static Operation GetOpCode(Instruction instruction) => (Operation)(instruction & MaskFirst8Bits);
 
         public static Word To40BitsValue(Word a)
         {

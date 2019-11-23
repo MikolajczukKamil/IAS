@@ -8,57 +8,48 @@ namespace IAS
     using Address = UInt16;
     using Operation = Byte;
     
-    /**
-     * 
-     * It is recommended to inherit from OptCodes
-     * 
-     * @example
-     * 
-     * [
-     *  Word(1),                   // 0
-     *  Word(
-     *    Instruction(LOAD_M, 0),  // 1L
-     *    Instruction(ADD_M, 0)    // 1R
-     *  )
-     * ]
-     * 
-     **/
     public class IAS_Codes
     {
-        public const Operation LOAD_MQ = 0b0001010;
-        public const Operation LOAD_MQ_M = 0b0001001;
-        public const Operation STOR_M = 0b0100001;
-        public const Operation LOAD_M = 0b0000001;
-        public const Operation LOAD_D_M = 0b0000010;
-        public const Operation LOAD_M_M = 0b0000011;
-        public const Operation LOAD_D_M_M = 0b0000100;
+        // Data transfer
+        public const Operation LOAD_M =     1;
+        public const Operation LOAD_D_M =   2;
+        public const Operation LOAD_M_M =   3;
+        public const Operation LOAD_D_M_M = 4;
+        public const Operation LOAD_MQ =    10;
+        public const Operation LOAD_MQ_M =  9;
+        public const Operation STOR_M =     33;
 
-        public const Operation STOR_M_L = 0b0010010;
-        public const Operation STOR_M_R = 0b0010011;
-        public const Operation JUMP_M_L = 0b0001101;
-        public const Operation JUMP_M_R = 0b0001110;
-        public const Operation JUMP_L = 0b1001101; // Addded Jump to address
-        public const Operation JUMP_R = 0b1001110; // Addded Jump to address
+        // Address modification
+        public const Operation STOR_M_L =   18;
+        public const Operation STOR_M_R =   19;
 
-        public const Operation JUMP_P_M_L = 0b0001111;
-        public const Operation JUMP_P_M_R = 0b0010000;
-        public const Operation JUMP_P_L = 0b1001111; // Addded Jump to address
-        public const Operation JUMP_P_R = 0b1010000; // Addded Jump to address
+        // Unconditional jumps
+        public const Operation JUMP_M_L =   13;
+        public const Operation JUMP_L =     13 + 128; // Addded Jump to address
+        public const Operation JUMP_M_R =   14;
+        public const Operation JUMP_R =     14 + 128; // Addded Jump to address
 
-        public const Operation ADD_M = 0b0000101;
-        public const Operation ADD_M_M = 0b0000111;
-        public const Operation SUB_M = 0b0000110;
-        public const Operation SUB_M_M = 0b0001000;
-        public const Operation MUL_M = 0b0001011;
-        public const Operation DIV_M = 0b0001100;
-        public const Operation LSH = 0b0010101;
-        public const Operation RSH = 0b0100010;
+        // Conditional jumps
+        public const Operation JUMP_P_M_L = 15;
+        public const Operation JUMP_P_L =   15 + 128; // Addded Jump to address
+        public const Operation JUMP_P_M_R = 16;
+        public const Operation JUMP_P_R =   16 + 128; // Addded Jump to address
 
-        public static Instruction Instruction(Operation optCode, Address address = 0)
+        // Arithmetic
+        public const Operation ADD_M =      5;
+        public const Operation ADD_M_M =    7;
+        public const Operation SUB_M =      6;
+        public const Operation SUB_M_M =    8;
+        public const Operation MUL_M =      11;
+        public const Operation DIV_M =      12;
+        public const Operation LSH =        20;
+        public const Operation RSH =        21;
+
+        public static Instruction Instruction(Operation opCode, Address address = 0)
         {
             Instruction instrution = ((Instruction)address) << 8;
 
-            instrution |= optCode;
+            instrution |= opCode;
 
             return instrution & IAS_Masks.MaskFirst20Bits;
         }

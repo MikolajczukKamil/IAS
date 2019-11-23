@@ -19,11 +19,11 @@ namespace IAS
 
     public class IASExeciuteException : IASMachineException
     {
-        public byte OptCode;
+        public byte OpCode;
 
-        public IASExeciuteException(string message, byte optCode) : base(message)
+        public IASExeciuteException(string message, byte opCode) : base(message)
         {
-            OptCode = optCode;
+            OpCode = opCode;
         }
     }
 }

@@ -93,7 +93,7 @@ metody pozwalające łatwo pisać kod IAS
 | STOR_M_L       | STOR M(X, 8:19)  | zamień adres lewego rozkazu M(X) na 12 prawych bitów AC  |
 | STOR_M_R       | STOR M(X, 28:39) | zamień adres prawego rozkazu M(X) na 12 prawych bitów AC |
 
-| Skoki bazwarunkowe |             |                               |
+| Skoki bezwarunkowe |             |                               |
 | ------------- | ---------------- | ------------------------------|
 | JUMP_M_L      | JUMP M(X, 0:19)  | skocz do lewego rozkazu M(X)  |
 | JUMP_M_R      | JUMP M(X, 20:39) | skocz do prawego rozkazu M(X) |
@@ -113,7 +113,7 @@ metody pozwalające łatwo pisać kod IAS
 | ADD_M_M      | ADD \|M(X)\| | AC = AC + \|M(X)\|             |
 | SUB_M        | SUB M(X)     | AC = AC - M(X)                 |
 | SUB_M_M      | SUB \|M(X)\| | AC = AC - \|M(X)\|             |
-| MUL_M        | MUL M(X)     | MQ:AC = MQ * M(X)              |
+| MUL_M        | MUL M(X)     | AC:MQ = MQ * M(X)              |
 | DIV_M        | DIV M(X)     | MQ = AC / M(X); AC = AC % M(X) |
 | LSH          | LSH          | AC = AC << 1                   |
 | RSH          | RSH          | AC = AC >> 1                   |

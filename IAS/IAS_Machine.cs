@@ -115,7 +115,7 @@ namespace IAS
                         Instruction right = GetRightInstruction(MBR);
 
                         Address newAddress = (Address)(AC & MaskFirst12Bits);
-                        MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOptCode(left), newAddress), right);
+                        MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOpCode(left), newAddress), right);
 
                         WriteMemory();
 
@@ -130,7 +130,7 @@ namespace IAS
                         Instruction right = GetRightInstruction(MBR);
 
                         Address newAddress = (Address)(AC & MaskFirst12Bits);
-                        MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOptCode(right), newAddress));
+                        MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOpCode(right), newAddress));
 
                         WriteMemory();
 
