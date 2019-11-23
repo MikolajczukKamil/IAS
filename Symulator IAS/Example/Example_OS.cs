@@ -7,44 +7,49 @@ namespace Symulator_IAS.Example
     {
         static ProgramOn_IAS[] programs = {
             new ProgramOn_IAS(
-                "Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu, wynik w m[3]", 
-                Zad1Poprawione(), 1, 4
-                ),
+                "Suma liczb od 1 do n + 1,                  max 1'048'574,          wynik w m[3]", 
+                Zad1SumaOd1DoN(), 1, 4
+            ),
 
             new ProgramOn_IAS(
-                "Zadanie 1, suma liczb od 1 do n, poprawna wersja, wynik w m[3]", 
-                Zad1Poprawne(), 1, 4
-                ),
+                "Suma liczb od 1 do n,                      max 1'048'575,          wynik w m[3]", 
+                Zad1SumaOd1DoNPoprawne(), 1, 4
+            ),
 
             new ProgramOn_IAS(
-                "Zadanie 2, wyrażenie n(n+1)/2, wynik w m[1]", 
-                Zad2(), 1, 2
-                ),
+                "Wyrażenie n(n+1)/2,                        max 1'048'575,          wynik w m[1]", 
+                Zad2SumaLiczbOd1DoNzUzyciemWzoru(), 1, 2
+            ),
 
             new ProgramOn_IAS(
-                "Zadanie 3, n!, z wykładu, wynik w m[3]", 
-                Zad3(), 1, 4
-                ),
+                "n!,                                        max 14,                 wynik w m[3]",
+                Zad3Silnia(), 1, 4
+            ),
 
             new ProgramOn_IAS(
-                "Kwadrat liczby, wynik w m[0]", 
+                "Kwadrat liczby,                            max 741'455,            wynik w m[0]", 
                 Squere(), 1, 1
-                ),
+            ),
 
             new ProgramOn_IAS(
-                "N wyraz ciągu Fibonacciego, wynik w m[2]",
-                Fibonacci(), 1, 5
-                ),
+                "N wyraz ciągu Fibonacciego,                max 57,                 wynik w m[2]",
+                Fibonacci(), 1, 7
+            ),
 
             new ProgramOn_IAS(
-                "NWD, algorytm Euklidesa, wynik w m[0]", 
+                "NWD, algorytm Euklidesa,                   max 549'755'813'887,    wynik w m[0]",
                 EuclideanAlgorithm(), 2, 4
-                ),
+            ),
 
             new ProgramOn_IAS(
-                "Suma kwadratów do n z użyciem funkcji, wynik w m[1]",
-                SumSquereTo(), 1, 2
-                )
+                "Suma kwadratów do n z użyciem funkcji,     max 11'814,             wynik w m[1]",
+                SumSquereTo(), 1, 7
+            ),
+
+            new ProgramOn_IAS(
+                "Dzielenie przez zero :)",
+                DivideByZero(), 0, 1
+            )
         };
 
         public static void Run()
@@ -53,7 +58,7 @@ namespace Symulator_IAS.Example
 
             try
             {
-                bool stop;
+                bool use;
 
                 do
                 {
@@ -80,22 +85,22 @@ namespace Symulator_IAS.Example
                     }
                     catch (Exception) { }
 
-                    stop = !(option > 0 && option <= programs.Length);
-
                     Console.Clear();
 
-                    if (!stop)
+                    use = option > 0 && option <= programs.Length;
+
+                    if (use)
                     {
                         ProgramOn_IAS program = programs[option - 1];
 
                         Console.WriteLine($"{option}) {program.Name}");
 
-                        int[] n = new int[program.Wariables];
+                        long[] n = new long[program.Wariables];
 
                         for (int i = 0; i < program.Wariables; i++)
                         {
                             Console.Write($"m[{i}] = ");
-                            n[i] = Convert.ToInt32(Console.ReadLine());
+                            n[i] = Convert.ToInt64(Console.ReadLine());
                         }
 
                         program.Reset(n);
@@ -121,7 +126,7 @@ namespace Symulator_IAS.Example
                         }
                     }
 
-                } while (!stop);
+                } while (use);
             }
             catch (Exception e)
             {

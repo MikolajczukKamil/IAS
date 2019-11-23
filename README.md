@@ -123,11 +123,12 @@ metody pozwalające łatwo pisać kod IAS
 ## Projekt Symulator_IAS
 
 ### Kilka przykładowych programów napisanych w IAS
-1) Zadanie 1, suma liczb od 1 do n, działająca wersja z wykładu
-2) Zadanie 1, suma liczb od 1 do n, poprawna wersja
-3) Zadanie 2, wyrażenie n(n+1)/2
-4) Zadanie 3, n!, z wykładu
-5) Kwadrat liczby
-6) N wyraz ciągu Fibonacciego
-7) NWD, algorytm Euklidesa
-8) Suma kwadratów do n z użyciem funkcji
+1) suma liczb od 1 do n + 1, max 1'048'574
+2) suma liczb od 1 do n, max 1'048'575
+3) wyrażenie n(n+1)/2, max 1'048'575
+4) n!, max 14
+5) Kwadrat liczby, max 741'455
+6) N wyraz ciągu Fibonacciego, max 57
+7) NWD, algorytm Euklidesa, max 549'755'813'887
+8) Suma kwadratów do n z użyciem funkcji, max 11'814
+9) Dzielenie przez zero

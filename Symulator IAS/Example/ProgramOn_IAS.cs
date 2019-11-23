@@ -32,7 +32,7 @@ namespace Symulator_IAS.Example
             StartPosiotion = startPosiotion;
         }
 
-        public void Reset(int[] n)
+        public void Reset(long[] n)
         {
             for (int i = 0; i < n.Length; i++)
                 Code[i] = IAS_Helpers.To40BitsValue(n[i]);
