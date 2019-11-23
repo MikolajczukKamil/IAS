@@ -15,7 +15,7 @@ namespace IAS
         // AC
         Word AC = 0;            // 40 bit
         Word MQ = 0;            // 40 bit
-        // Word MBR = 0;           // 40 bit
+        Word MBR = 0;           // 40 bit
 
         // CC
         Instruction IBR = 0;    // 20 bit
@@ -37,8 +37,6 @@ namespace IAS
             PC = address;
         }
 
-        void SetData(Address address, Word data) => Memory.SetWord(address, data);
-
         public void Step()
         {
             Fetch();
@@ -48,7 +46,9 @@ namespace IAS
 
         void Fetch()
         {
-            Word MBR = Memory.GetWord(PC);
+            MAR = PC;
+
+            ReadMemory();
 
             if (RightInstruction)
                 PC++;
@@ -74,27 +74,33 @@ namespace IAS
                     return;
 
                 case IAS_Codes.LOAD_MQ_M:
-                    MQ = Memory.GetWord(MAR);
+                    ReadMemory();
+                    MQ = MBR;
                     return;
 
                 case IAS_Codes.STOR_M:
-                    SetData(MAR, AC);
+                    MBR = AC;
+                    WriteMemory();
                     return;
 
                 case IAS_Codes.LOAD_M:
-                    AC = Memory.GetWord(MAR);
+                    ReadMemory();
+                    AC = MBR;
                     return;
 
                 case IAS_Codes.LOAD_D_M:
-                    AC = -Memory.GetWord(MAR);
+                    ReadMemory();
+                    AC = -MBR;
                     return;
 
                 case IAS_Codes.LOAD_M_M:
-                    AC = Math.Abs(Memory.GetWord(MAR));
+                    ReadMemory();
+                    AC = Math.Abs(MBR);
                     return;
 
                 case IAS_Codes.LOAD_D_M_M:
-                    AC = -Math.Abs(Memory.GetWord(MAR));
+                    ReadMemory();
+                    AC = -Math.Abs(MBR);
                     return;
 
                 #endregion transfer
@@ -103,31 +109,31 @@ namespace IAS
 
                 case IAS_Codes.STOR_M_L:
                     {
-                        Word oldInstruction = Memory.GetWord(MAR);
+                        ReadMemory();
 
-                        Instruction left = GetLeftInstruction(oldInstruction);
-                        Instruction right = GetRightInstruction(oldInstruction);
-                        Operation opt = GetOptCode(left);
+                        Instruction left = GetLeftInstruction(MBR);
+                        Instruction right = GetRightInstruction(MBR);
+
                         Address newAddress = (Address)(AC & MaskFirst12Bits);
+                        MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOptCode(left), newAddress), right);
 
-                        Word newInstruction = IAS_Codes.Word(IAS_Codes.Instruction(opt, newAddress), right);
+                        WriteMemory();
 
-                        SetData(MAR, newInstruction);
                         return;
                     }
 
                 case IAS_Codes.STOR_M_R:
                     {
-                        Word oldInstruction = Memory.GetWord(MAR);
+                        ReadMemory();
 
-                        Instruction left = GetLeftInstruction(oldInstruction);
-                        Instruction right = GetRightInstruction(oldInstruction);
-                        Operation opt = GetOptCode(right);
+                        Instruction left = GetLeftInstruction(MBR);
+                        Instruction right = GetRightInstruction(MBR);
+
                         Address newAddress = (Address)(AC & MaskFirst12Bits);
+                        MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOptCode(right), newAddress));
 
-                        Word newInstruction = IAS_Codes.Word(left, IAS_Codes.Instruction(opt, newAddress));
+                        WriteMemory();
 
-                        SetData(MAR, newInstruction);
                         return;
                     }
 
@@ -138,14 +144,18 @@ namespace IAS
                 case IAS_Codes.JUMP_M_L:
                     RightInstruction = false;
 
-                    PC = (Address)Memory.GetWord(MAR);
+                    ReadMemory();
+
+                    PC = (Address)MBR;
 
                     return;
 
                 case IAS_Codes.JUMP_M_R:
                     RightInstruction = true;
 
-                    PC = (Address)Memory.GetWord(MAR);
+                    ReadMemory();
+
+                    PC = (Address)MBR;
 
                     return;
 
@@ -174,7 +184,10 @@ namespace IAS
                     if (AC >= 0)
                     {
                         RightInstruction = false;
-                        PC = (Address)Memory.GetWord(MAR);
+
+                        ReadMemory();
+
+                        PC = (Address)MBR;
                     }
 
                     return;
@@ -184,7 +197,10 @@ namespace IAS
                     if (AC >= 0)
                     {
                         RightInstruction = true;
-                        PC = (Address)Memory.GetWord(MAR);
+
+                        ReadMemory();
+
+                        PC = (Address)MBR;
                     }
 
                     return;
@@ -216,28 +232,38 @@ namespace IAS
                 #region arytmetyczne
 
                 case IAS_Codes.ADD_M:
-                    AC = To40BitsValue(AC + Memory.GetWord(MAR));
+                    ReadMemory();
+
+                    AC = To40BitsValue(AC + MBR);
 
                     return;
 
                 case IAS_Codes.ADD_M_M:
-                    AC = To40BitsValue(AC + Math.Abs(Memory.GetWord(MAR)));
+                    ReadMemory();
+
+                    AC = To40BitsValue(AC + Math.Abs(MBR));
 
                     return;
 
                 case IAS_Codes.SUB_M:
-                    AC = To40BitsValue(AC - Memory.GetWord(MAR));
+                    ReadMemory();
+
+                    AC = To40BitsValue(AC - MBR);
 
                     return;
 
                 case IAS_Codes.SUB_M_M:
-                    AC = To40BitsValue(AC - Math.Abs(Memory.GetWord(MAR)));
+                    ReadMemory();
+
+                    AC = To40BitsValue(AC - Math.Abs(MBR));
 
                     return;
 
                 case IAS_Codes.MUL_M:
                     {
-                        BigInteger mul = new BigInteger(Memory.GetWord(MAR)) * MQ;
+                        ReadMemory();
+
+                        BigInteger mul = new BigInteger(MBR) * MQ;
 
                         MQ = To40BitsValue((Word)(mul & MaskFirst40Bits));
 
@@ -248,13 +274,13 @@ namespace IAS
 
                 case IAS_Codes.DIV_M:
                     {
-                        long divisor = Memory.GetWord(MAR);
+                        ReadMemory();
 
-                        if(divisor == 0)
+                        if(MBR == 0)
                             throw new IASExeciuteException("Divide by zero", IR);
 
-                        MQ = AC / divisor;
-                        AC = AC % divisor;
+                        MQ = AC / MBR;
+                        AC = AC % MBR;
 
                         return;
                     }
@@ -275,6 +301,16 @@ namespace IAS
             }
 
             throw new IASExeciuteException($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}", IR);
+        }
+
+        void ReadMemory()
+        {
+            MBR = Memory.GetWord(MAR);
+        }
+
+        void WriteMemory()
+        {
+            Memory.SetWord(MAR, MBR);
         }
 
         public Word[] GetMemory(bool copy = true) => Memory.GetInstructions(copy);
