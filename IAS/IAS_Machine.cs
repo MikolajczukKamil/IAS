@@ -85,7 +85,7 @@ namespace IAS
                     AC = Memory.GetWord(MAR);
                     return;
 
-                case IAS_Codes.LOAD_DM:
+                case IAS_Codes.LOAD_D_M:
                     AC = -Memory.GetWord(MAR);
                     return;
 

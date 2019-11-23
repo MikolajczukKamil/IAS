@@ -29,7 +29,7 @@ namespace IAS
         public const Operation LOAD_MQ_M = 0b0001001;
         public const Operation STOR_M = 0b0100001;
         public const Operation LOAD_M = 0b0000001;
-        public const Operation LOAD_DM = 0b0000010;
+        public const Operation LOAD_D_M = 0b0000010;
         public const Operation LOAD_M_M = 0b0000011;
         public const Operation LOAD_D_M_M = 0b0000100;
 
