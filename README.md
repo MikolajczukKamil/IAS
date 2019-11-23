@@ -76,35 +76,47 @@ Zawiera klasę IAS_Machne przyjmującą w konstruktorze kod w postaci UInt64[],
 oraz klasę IAS_Codes która dostarcza stałe zawierające kody instrukcji i 
 metody pozwalające łatwo pisać kod IAS
 
-### Polecenia
-- LOAD_MQ
-- LOAD_MQ_M
-- STOR_M
-- LOAD_M
-- LOAD_DM
-- LOAD_M_M
-- LOAD_D_M_M
+### Rozkazy IAS
 
-- STOR_M_L
-- STOR_M_R
-- JUMP_M_L
-- JUMP_M_R
-- JUMP_L *
-- JUMP_R *
+| Transfer danych |              |                |
+| ------------- | -------------- |--------------- |
+| LOAD_MQ       | LOAD MQ        | AC = MQ        |
+| LOAD_MQ_M     | LOAD MQM(X)    | MQ = M(X)      |
+| STOR_M        | STOR M(X)      | M(X) = AC      |
+| LOAD_M        | LOAD M(X)      | AC = M(X)      |
+| LOAD_D_M      | LOAD -M(X)     | AC = -M(X)     |
+| LOAD_M_M      | LOAD \|M(X)\|  | AC = \|M(X)\|  |
+| LOAD_D_M_M    | LOAD -\|M(X)\| | AC = -\|M(X)\| |
 
-- JUMP_P_M_L
-- JUMP_P_M_R
-- JUMP_P_L *
-- JUMP_P_R *
+| Modyfikacja adresu |              |                                                          |
+| -------------- | ---------------- | -------------------------------------------------------- |
+| STOR_M_L       | STOR M(X, 8:19)  | zamień adres lewego rozkazu M(X) na 12 prawych bitów AC  |
+| STOR_M_R       | STOR M(X, 28:39) | zamień adres prawego rozkazu M(X) na 12 prawych bitów AC |
 
-- ADD_M
-- ADD_M_M
-- SUB_M
-- SUB_M_M
-- MUL_M
-- DIV_M
-- LSH
-- RSH
+| Skoki bazwarunkowe |             |                               |
+| ------------- | ---------------- | ------------------------------|
+| JUMP_M_L      | JUMP M(X, 0:19)  | skocz do lewego rozkazu M(X)  |
+| JUMP_M_R      | JUMP M(X, 20:39) | skocz do prawego rozkazu M(X) |
+| JUMP_L        | JUMP (X, 0:19) * | skocz do lewego rozkazu X   * |
+| JUMP_R        | JUMP (X, 0:19) * | skocz do prawego rozkazu X  * |
+
+| Skoki warunkowe |                    |                                              |
+| --------------- | ------------------ | ---------------------------------------------|
+| JUMP_P_M_L      | JUMP + M(X, 0:19)  | jeżeli AC >= 0 skocz do lewego rozkazu M(X)  |
+| JUMP_P_M_R      | JUMP + M(X, 20:39) | jeżeli AC >= 0 skocz do prawego rozkazu M(X) |
+| JUMP_P_L        | JUMP + (X, 0:19) * | jeżeli AC >= 0 skocz do lewego rozkazu X   * |
+| JUMP_P_R        | JUMP + (X, 0:19) * | jeżeli AC >= 0 skocz do prawego rozkazu X  * |
+
+| Arytmetyczne |              |                                |
+| ------------ | ------------ | -------------------------------|
+| ADD_M        | ADD M(X)     | AC = AC + M(X)                 |
+| ADD_M_M      | ADD \|M(X)\| | AC = AC + \|M(X)\|             |
+| SUB_M        | SUB M(X)     | AC = AC - M(X)                 |
+| SUB_M_M      | SUB \|M(X)\| | AC = AC - \|M(X)\|             |
+| MUL_M        | MUL M(X)     | MQ:AC = MQ * M(X)              |
+| DIV_M        | DIV M(X)     | MQ = AC / M(X); AC = AC % M(X) |
+| LSH          | LSH          | AC = AC << 1                   |
+| RSH          | RSH          | AC = AC >> 1                   |
 
 \* Polecenia dodane, nie są uwzględniowne w tabeli rozkazów
 
