@@ -7,42 +7,42 @@ namespace Symulator_IAS.Example
     {
         static ProgramOn_IAS[] programs = {
             new ProgramOn_IAS(
-                "Suma liczb od 1 do n + 1,                  max 1'048'574,          wynik w m[3]", 
+                "Suma liczb od 1 do n + 1                max 1'048'574        wynik w m[3]", 
                 Zad1SumaOd1DoN(), 1, 4
             ),
 
             new ProgramOn_IAS(
-                "Suma liczb od 1 do n,                      max 1'048'575,          wynik w m[3]", 
+                "Suma liczb od 1 do n                    max 1'048'575        wynik w m[2]", 
                 Zad1SumaOd1DoNPoprawne(), 1, 4
             ),
 
             new ProgramOn_IAS(
-                "Wyrażenie n(n+1)/2,                        max 1'048'575,          wynik w m[1]", 
+                "Wyrażenie n(n+1)/2                      max 1'048'575        wynik w m[1]", 
                 Zad2SumaLiczbOd1DoNzUzyciemWzoru(), 1, 2
             ),
 
             new ProgramOn_IAS(
-                "n!,                                        max 14,                 wynik w m[3]",
+                "n!                                      max 14               wynik w m[3]",
                 Zad3Silnia(), 1, 4
             ),
 
             new ProgramOn_IAS(
-                "Kwadrat liczby,                            max 741'455,            wynik w m[0]", 
+                "Kwadrat liczby                          max 741'455          wynik w m[0]", 
                 Squere(), 1, 1
             ),
 
             new ProgramOn_IAS(
-                "N wyraz ciągu Fibonacciego,                max 57,                 wynik w m[2]",
+                "N wyraz ciągu Fibonacciego              max 57               wynik w m[2]",
                 Fibonacci(), 1, 7
             ),
 
             new ProgramOn_IAS(
-                "NWD, algorytm Euklidesa,                   max 549'755'813'887,    wynik w m[0]",
+                "NWD, algorytm Euklidesa                 max 549'755'813'887  wynik w m[0]",
                 EuclideanAlgorithm(), 2, 4
             ),
 
             new ProgramOn_IAS(
-                "Suma kwadratów do n z użyciem funkcji,     max 11'814,             wynik w m[1]",
+                "Suma kwadratów do n z użyciem funkcji   max 11'814           wynik w m[1]",
                 SumSquereTo(), 1, 7
             ),
 

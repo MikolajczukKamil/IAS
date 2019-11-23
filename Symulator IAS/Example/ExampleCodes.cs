@@ -20,7 +20,7 @@ namespace Symulator_IAS.Example
             ),
             Word(
                 Instruction(JUMP_P_L, 6),   // 5L // if(AC >= 0) jump to 6L
-                Instruction(JUMP_R, 5)      // 5R // else koniec = inf loop = jump to 5R
+                Instruction(JUMP_R, 5)      // 5R // else done = inf loop = jump to 5R
             ),
             Word(
                 Instruction(LOAD_M, 2),     // 6L // AC = i
@@ -38,38 +38,38 @@ namespace Symulator_IAS.Example
 
         public static IASWord[] Zad1SumaOd1DoNPoprawne() => new IASWord[]
         {
-            // * Poprawka jako słowo 4 i 5
             Word(1), // n = M(0) <>         // 0
-            Word(1),                        // 1 // const 1 = M(1)
-            Word(0), // i = M(2)            // 2
-            Word(0), // x = M(3)            // 3
+            Word(0), // i = M(1)            // 1
+            Word(0), // x = M(2)            // 2
+            Word(1),                        // 3 // const 1 = M(3)
             Word(
-                Instruction(LOAD_M, 0),     // 4L // AC = n  *
-                Instruction(SUB_M, 1)       // 4R // AC --   *
+                Instruction(LOAD_M, 0),     // 4L // AC = n
+                Instruction(SUB_M, 3)       // 4R // AC--
             ),
             Word(
-                Instruction(STOR_M, 0),      // 5L // n = AC *
-                Instruction(JUMP_L, 6)       // 5R // *
+                Instruction(STOR_M, 0),     // 5L // n = AC 
+                Instruction(LOAD_M, 0)      // 5R // AC = n ; while(n - i >= 0)
+
             ),
             Word(
-                Instruction(LOAD_M, 0),     // 6L // AC = n ; while(n - i >= 0)
-                Instruction(SUB_M, 2)       // 6R // AC = AC - i
+                Instruction(SUB_M, 1),       // 6L // AC = AC - i
+                Instruction(JUMP_P_R, 7)     // 6R // if(AC >= 0) jump to 7R
             ),
             Word(
-                Instruction(JUMP_P_L, 6+2), // 7L // if(AC >= 0) jump to 8L
-                Instruction(JUMP_R, 5+2)    // 7R // else koniec = inf loop = jump to 7R
+                Instruction(JUMP_L, 7),      // 7L // else done = inf loop = jump to 7L
+                Instruction(LOAD_M, 1)       // 7R // AC = i
             ),
             Word(
-                Instruction(LOAD_M, 2),     // 8L // AC = i
-                Instruction(ADD_M, 1)       // 8R // AC++
+                Instruction(ADD_M, 3),       // 8L // AC++
+                Instruction(STOR_M, 1)       // 8R // i = AC
             ),
             Word(
-                Instruction(STOR_M, 2),     // 9L // i = AC
-                Instruction(ADD_M, 3)       // 9R // AC += x
+                Instruction(ADD_M, 2),       // 9L // AC += x
+                Instruction(STOR_M, 2)       // 9R // x = AC
             ),
             Word(
-                Instruction(STOR_M, 3),     // 10L // x = AC
-                Instruction(JUMP_L, 4+2)    // 10R // end while
+                Instruction(JUMP_R, 5),      // 10L // end while
+                0
             )
         };
 
@@ -94,7 +94,7 @@ namespace Symulator_IAS.Example
                 Instruction(STOR_M, 1)      // 5R // wynik = AC
             ),
             Word(
-                Instruction(JUMP_L, 6),     // 6L // koniec = inf loop = jump to 6L
+                Instruction(JUMP_L, 6),     // 6L // done = inf loop = jump to 6L
                 0
             )
         };
@@ -130,7 +130,7 @@ namespace Symulator_IAS.Example
                 Instruction(JUMP_P_L, 5)    // 9R // while(AC >= 0) jump to 5L
             ),
             Word(
-                Instruction(JUMP_L, 10),    // 10L // koniec = inf loop = jump to 10L
+                Instruction(JUMP_L, 10),    // 10L // done = inf loop = jump to 10L
                 0
             )
         };
@@ -153,7 +153,7 @@ namespace Symulator_IAS.Example
                 Instruction(JUMP_P_R, 9)    // 8R // if(AC >= 0) jump to 9R; while(i >= 0)
             ),
             Word(
-                Instruction(JUMP_L, 9),     // 9L // else koniec = inf loop = jump to 9L
+                Instruction(JUMP_L, 9),     // 9L // else done = inf loop = jump to 9L
                 Instruction(LOAD_M, 1)      // 9R // AC = a
             ),
             Word(
@@ -191,7 +191,7 @@ namespace Symulator_IAS.Example
                 Instruction(STOR_M, 0)      // 2R // n = AC
             ),
             Word(
-                Instruction(JUMP_L, 3),     // 3L // koniec = inf loop = jump to 3L
+                Instruction(JUMP_L, 3),     // 3L // done = inf loop = jump to 3L
                 0
             )
         };
@@ -208,7 +208,7 @@ namespace Symulator_IAS.Example
             ),
             Word(
                 Instruction(JUMP_P_L, 6),    // 5L // if(AC >= 0) jump to 6L
-                Instruction(JUMP_R, 5)       // 5R // else koniec = inf loop = jump to 5R
+                Instruction(JUMP_R, 5)       // 5R // else done = inf loop = jump to 5R
             ),
             Word(
                 Instruction(LOAD_M, 1),      // 6L // AC = m
@@ -243,7 +243,7 @@ namespace Symulator_IAS.Example
             ),
             Word(
                 Instruction(JUMP_P_L, 9),   // 8L // if (n - 1 >= 0) jump to 9L
-                Instruction(JUMP_R, 8)      // 8R // else koniec = inf loop = jump to 5R
+                Instruction(JUMP_R, 8)      // 8R // else done = inf loop = jump to 5R
             ),
             Word(
                 Instruction(LOAD_M, 0),     // 9L // AC = n

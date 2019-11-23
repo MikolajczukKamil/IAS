@@ -1,18 +1,33 @@
 # Maszyna IAS
 Symulator maszyny IAS
 
-## C# code
+### C#
 
 ```C#
-int N = 5;
-int X = 0;
+int n = 5;
+int x = 0;
 
 for (int i = 1; i < N; i++)
-  X += i;
-                
+  x += i;
+           
 ```
 
-## IAS Code
+### C# like IAS
+
+```C#
+int n = 5;
+int x = 0;
+
+int i = 0;
+
+n--;
+while(n - i >= 0) {
+  i++;
+  x += i;
+}
+```
+
+## IAS
 
 ```C#
 using IAS;
@@ -21,37 +36,38 @@ class MyProject : IAS_Codes {
   static void Main() {
     long[] Code = new long[]
     {
-      Word(5), // <>                // 0 N
-      Word(1),                      // 1 ++
-      Word(0),                      // 2 i
-      Word(0),                      // 3 X
+      Word(1), // n = M(0) <>       // 0
+      Word(1),                      // 1 // const 1 = M(1)
+      Word(0), // i = M(2)          // 2
+      Word(0), // x = M(3)          // 3
       Word(
-        Instruction(LOAD_M, 0),     // 4L
-        Instruction(SUB_M, 1)       // 4R
+        Instruction(LOAD_M, 0),     // 4L // AC = n
+        Instruction(SUB_M, 1)       // 4R // AC--
       ),
       Word(
-        Instruction(SUB_M, 1),      // 5L
-        Instruction(STOR_M, 0)      // 5R
+        Instruction(STOR_M, 0),     // 5L // n = AC 
+        Instruction(LOAD_M, 0)      // 5R // AC = n ; while(n - i >= 0)
+
       ),
       Word(
-        Instruction(LOAD_M, 0),     // 6L
-        Instruction(SUB_M, 2)       // 6R
+        Instruction(SUB_M, 2),       // 6L // AC = AC - i
+        Instruction(JUMP_P_R, 7)     // 6R // if(AC >= 0) jump to 7R
       ),
       Word(
-        Instruction(JUMP_P_L, 8),   // 7L
-        Instruction(JUMP_R, 7)      // 7R
+        Instruction(JUMP_L, 7),      // 7L // else done = inf loop = jump to 7L
+        Instruction(LOAD_M, 2)       // 7R // AC = i
       ),
       Word(
-        Instruction(LOAD_M, 2),     // 8L
-        Instruction(ADD_M, 1)       // 8R
+        Instruction(ADD_M, 1),       // 8L // AC++
+        Instruction(STOR_M, 2)       // 8R // i = AC
       ),
       Word(
-        Instruction(STOR_M, 2),     // 9L
-        Instruction(ADD_M, 3)       // 9R
+        Instruction(ADD_M, 3),       // 9L // AC += x
+        Instruction(STOR_M, 3)       // 9R // x = AC
       ),
       Word(
-        Instruction(STOR_M, 3),     // 10L
-        Instruction(JUMP_L, 6)      // 10R
+        Instruction(JUMP_R, 5),      // 10L // end while
+        0
       )
     };
 
@@ -59,7 +75,7 @@ class MyProject : IAS_Codes {
 
     Machine.ManualJumpTo(4); // Program starts at m[4]
 
-    Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory -  m[0-3]
+    Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory - m[0-3]
 
     while(Console.ReadKey().KeyChar != 'x') {
       Machine.Step();
