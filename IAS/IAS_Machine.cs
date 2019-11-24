@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Numerics;
+using System.Linq;
 using IAS.Components;
 
 namespace IAS
@@ -311,6 +312,48 @@ namespace IAS
         void WriteMemory()
         {
             Memory.SetWord(MAR, MBR);
+        }
+
+        static Operation[] Jumps = {
+            IAS_Codes.JUMP_L,
+            IAS_Codes.JUMP_R,
+            IAS_Codes.JUMP_M_L,
+            IAS_Codes.JUMP_M_R,
+            IAS_Codes.JUMP_P_L,
+            IAS_Codes.JUMP_P_R,
+            IAS_Codes.JUMP_P_M_L,
+            IAS_Codes.JUMP_P_M_R
+        };
+
+        public bool Done()
+        {
+            Word _MBR = MBR;
+            Instruction _IBR = IBR;
+            Address _PC = PC;
+            Address _MAR = MAR;
+            Operation _IR = IR;
+            bool _RightInstruction = RightInstruction;
+
+            Fetch();
+            Decode();
+
+            bool done = false;
+
+            if (Jumps.Contains(IR))
+            {
+                Execiute();
+
+                if (PC == _PC && RightInstruction == _RightInstruction) done = true;
+            }
+
+            MBR = _MBR;
+            IBR = _IBR;
+            PC = _PC;
+            MAR = _MAR;
+            IR = _IR;
+            RightInstruction = _RightInstruction;
+
+            return done;
         }
 
         public Word[] GetMemory(bool copy = true) => Memory.GetInstructions(copy);

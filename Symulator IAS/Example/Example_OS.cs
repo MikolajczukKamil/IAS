@@ -113,14 +113,23 @@ namespace Symulator_IAS.Example
                         char key = Console.ReadKey().KeyChar;
 
                         int counter = 0;
+                        bool endMessage = false;
 
-                        while (key != 'x' && key != 'X')
+                        while ((key != 'x' && key != 'X'))
                         {
-                            counter++;
-                            machine.Step();
+                            if(!machine.Done())
+                            {
+                                counter++;
+                                machine.Step();
 
-                            Console.WriteLine($"Krok: {counter}");
-                            Console.WriteLine(machine.ToString(program.MemoryToShow));
+                                Console.WriteLine($"Krok: {counter}");
+                                Console.WriteLine(machine.ToString(program.MemoryToShow));
+                            }
+                            else if(!endMessage)
+                            {
+                                endMessage = true;
+                                Console.WriteLine("IAS skończył swoją pracę");
+                            }
 
                             key = Console.ReadKey().KeyChar;
                         }

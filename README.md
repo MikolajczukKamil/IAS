@@ -4,87 +4,97 @@ Symulator maszyny IAS
 ### C#
 
 ```C#
-int n = 5;
-int x = 0;
+int n = 10;
+int sum = 0;
 
-for (int i = 1; i < N; i++)
-  x += i;
-           
+for (int i = 1; i <= n; i++)
+  sum += i;
 ```
 
 ### C# like IAS
 
 ```C#
-int n = 5;
-int x = 0;
+int AC = 0;
 
+int n = 10;
+int sum = 0;
 int i = 0;
+int one = 1;
 
-n--;
-while(n - i >= 0) {
-  i++;
-  x += i;
+while(true) {
+  AC = n;        // n - 1
+  AC -= i;
+  if(AC >= 0) {} // while(n - i >= 0) <=> while(i <= n)
+  else break;
+  AC = i;        // sum += i
+  AC += sum;
+  sum = AC;
+  AC = i;        // i++
+  AC += one;
+  i = AC;
 }
 ```
 
 ## IAS
 
 ```C#
+using System;
 using IAS;
 
 class MyProject : IAS_Codes {
   static void Main() {
+    Console.Write("n = ");
+    int n = Convert.ToInt32(Console.ReadLine());
+
     long[] Code = new long[]
     {
-      Word(1), // n = M(0) <>       // 0
-      Word(1),                      // 1 // const 1 = M(1)
-      Word(0), // i = M(2)          // 2
-      Word(0), // x = M(3)          // 3
+      Word(n), // n = M(0) <>       // 0
+      Word(1), // i = M(1)          // 1
+      Word(0), // x = M(2)          // 2
+      Word(1),                      // 3 // const 1 = M(3)
       Word(
-        Instruction(LOAD_M, 0),     // 4L // AC = n
-        Instruction(SUB_M, 1)       // 4R // AC--
+        Instruction(LOAD_M, 0),     // 4L // AC = n ; while(n - i >= 0)
+        Instruction(SUB_M, 1)       // 4R // AC -= i
       ),
       Word(
-        Instruction(STOR_M, 0),     // 5L // n = AC 
-        Instruction(LOAD_M, 0)      // 5R // AC = n ; while(n - i >= 0)
-
+        Instruction(JUMP_P_L, 6),   // 5L // if(AC >= 0) jump to 6L
+        Instruction(JUMP_R, 5)      // 5R // else done = inf loop = jump to 5R
       ),
       Word(
-        Instruction(SUB_M, 2),       // 6L // AC = AC - i
-        Instruction(JUMP_P_R, 7)     // 6R // if(AC >= 0) jump to 7R
+        Instruction(LOAD_M, 1),      // 6L // AC = i
+        Instruction(ADD_M, 2)        // 6R // AC += x
       ),
       Word(
-        Instruction(JUMP_L, 7),      // 7L // else done = inf loop = jump to 7L
-        Instruction(LOAD_M, 2)       // 7R // AC = i
+        Instruction(STOR_M, 2),      // 7L // x = AC
+        Instruction(LOAD_M, 1)       // 7R // AC = i
       ),
       Word(
-        Instruction(ADD_M, 1),       // 8L // AC++
-        Instruction(STOR_M, 2)       // 8R // i = AC
+        Instruction(ADD_M, 3),       // 8L // AC++
+        Instruction(STOR_M, 1)       // 8R // i = AC
       ),
       Word(
-        Instruction(ADD_M, 3),       // 9L // AC += x
-        Instruction(STOR_M, 3)       // 9R // x = AC
-      ),
-      Word(
-        Instruction(JUMP_R, 5),      // 10L // end while
+        Instruction(JUMP_L, 4),      // 9L // end while
         0
       )
     };
 
-    IAS_Machine Machine = new IAS_Machine(Code);
+    try {
+      IAS_Machine Machine = new IAS_Machine(Code);
 
-    Machine.ManualJumpTo(4); // Program starts at m[4]
+      Machine.ManualJumpTo(4); // Program starts at m[4]
 
-    Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory - m[0-3]
+      Console.WriteLine(Machine.ToString(4)); // Show 4 first words in memory - m[0-3]
 
-    while(Console.ReadKey().KeyChar != 'x') {
-      Machine.Step();
+      while(Console.ReadKey().KeyChar != 'x') {
+        Machine.Step();
 
-      Console.WriteLine(Machine.ToString(4));
+        Console.WriteLine(Machine.ToString(4));
+      }
+    } catch(Exception e) {
+      Console.WriteLine($"Error: {e.Message}");
     }
   }
 }
-
 ```
 
 ## Projekt IAS
