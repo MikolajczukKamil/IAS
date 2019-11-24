@@ -1,20 +1,28 @@
 ﻿using System;
 using System.Text;
 
-namespace IAS.Components
+using IAS.Bus;
+using IAS.Components;
+
+namespace IAS.Memory
 {
     using Word = Int64;
     using Address = UInt16;
+    using Operation = Byte;
 
     class IAS_Memory : IAS_Helpers
     {
         public static Address MaxSize = 1000;
+        public static Operation MR = 1;
+        public static Operation MW = 2;
 
         Word[] Memory;
         Address Length;
+        IAS_Bus Bus;
 
-        public IAS_Memory(Word[] code, bool copy)
+        public IAS_Memory(Word[] code, IAS_Bus bus, bool copy)
         {
+            Bus = bus;
             Length = (Address)code.Length;
 
             if (Length > MaxSize)
@@ -26,24 +34,27 @@ namespace IAS.Components
                 Memory[i] = To40BitsValue(code[i]);
         }
 
+        public void Do()
+        {
+            if(Bus.Control == MR)
+            {
+                CheckAddress(Bus.Address);
+
+                Bus.Data = Memory[Bus.Address];
+            }
+
+            if (Bus.Control == MW)
+            {
+                CheckAddress(Bus.Address);
+
+                Memory[Bus.Address] = Bus.Data;
+            }
+        }
+
         void CheckAddress(Address address)
         {
             if (address >= Length)
                 throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Memory.Length}", address);
-        }
-
-        public Word GetWord(Address address)
-        {
-            CheckAddress(address);
-
-            return Memory[address];
-        }
-
-        public void SetWord(Address address, Word word)
-        {
-            CheckAddress(address);
-
-            Memory[address] = To40BitsValue(word);
         }
 
         public Word[] GetInstructions(bool copy)

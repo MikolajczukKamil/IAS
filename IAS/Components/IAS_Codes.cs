@@ -8,7 +8,7 @@ namespace IAS
     using Address = UInt16;
     using Operation = Byte;
     
-    public class IAS_Codes
+    public class IAS_Codes : IAS_Helpers
     {
         // Data transfer
         public const Operation LOAD_M =     1;
@@ -51,13 +51,13 @@ namespace IAS
 
             instrution |= opCode;
 
-            return instrution & IAS_Masks.MaskFirst20Bits;
+            return instrution & IAS_Masks.First20Bits;
         }
 
         public static Word Word(Instruction leftInstruction, Instruction rightInstruction)
         {
-            leftInstruction &= IAS_Masks.MaskFirst20Bits;
-            rightInstruction &= IAS_Masks.MaskFirst20Bits;
+            leftInstruction &= IAS_Masks.First20Bits;
+            rightInstruction &= IAS_Masks.First20Bits;
 
             Word instrution = leftInstruction;
 
@@ -66,7 +66,7 @@ namespace IAS
             return instrution;
         }
 
-        public static Word Word(long data) => IAS_Helpers.To40BitsValue(data);
+        public static Word Word(long data) => To40BitsValue(data);
 
         public static Word Word() => 0;
     };
