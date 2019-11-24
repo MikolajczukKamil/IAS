@@ -39,24 +39,23 @@ namespace Symulator_IAS.Example
         public static IASWord[] Zad1SumaOd1DoNPoprawne() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
-            Word(0), // i = M(1)            // 1
+            Word(1), // i = M(1)            // 1
             Word(0), // x = M(2)            // 2
             Word(1),                        // 3 // const 1 = M(3)
             Word(
-                Instruction(LOAD_M, 0),     // 4L // AC = n
-                Instruction(SUB_M, 3)       // 4R // AC--
+                Instruction(LOAD_M, 0),     // 4L // AC = n ; while(n - i >= 0)
+                Instruction(SUB_M, 1)       // 4R // AC -= i
             ),
             Word(
-                Instruction(STOR_M, 0),     // 5L // n = AC 
-                Instruction(LOAD_M, 0)      // 5R // AC = n ; while(n - i >= 0)
-
+                Instruction(JUMP_P_L, 6),   // 5L // if(AC >= 0) jump to 6L
+                Instruction(JUMP_R, 5)      // 5R // else done = inf loop = jump to 5R
             ),
             Word(
-                Instruction(SUB_M, 1),       // 6L // AC = AC - i
-                Instruction(JUMP_P_R, 7)     // 6R // if(AC >= 0) jump to 7R
+                Instruction(LOAD_M, 1),      // 6L // AC = i
+                Instruction(ADD_M, 2)        // 6R // AC += x
             ),
             Word(
-                Instruction(JUMP_L, 7),      // 7L // else done = inf loop = jump to 7L
+                Instruction(STOR_M, 2),      // 7L // x = AC
                 Instruction(LOAD_M, 1)       // 7R // AC = i
             ),
             Word(
@@ -64,11 +63,7 @@ namespace Symulator_IAS.Example
                 Instruction(STOR_M, 1)       // 8R // i = AC
             ),
             Word(
-                Instruction(ADD_M, 2),       // 9L // AC += x
-                Instruction(STOR_M, 2)       // 9R // x = AC
-            ),
-            Word(
-                Instruction(JUMP_R, 5),      // 10L // end while
+                Instruction(JUMP_L, 4),      // 9L // end while
                 0
             )
         };
