@@ -6,18 +6,18 @@ namespace IAS.Components
     using Instruction = UInt32;
     using Operation = Byte;
 
-    public abstract class IAS_Helpers : IAS_Masks
+    public abstract class IAS_Helpers
     {
-        public static Word MaxValue = MaskFirst39Bits;
-        public static Word MinValue = ~MaxValue;
+        static Word MaxValue = IAS_Masks.First39Bits;
+        static Word MinValue = ~MaxValue;
 
-        public static Instruction GetLeftInstruction(Word word) => (Instruction)word & MaskFirst20Bits;
+        protected static Instruction GetLeftInstruction(Word word) => (Instruction)word & IAS_Masks.First20Bits;
 
-        public static Instruction GetRightInstruction(Word word) => (Instruction)(word >> 20);
+        protected static Instruction GetRightInstruction(Word word) => (Instruction)(word >> 20);
 
-        public static Operation GetOpCode(Instruction instruction) => (Operation)(instruction & MaskFirst8Bits);
+        protected static Operation GetOpCode(Instruction instruction) => (Operation)(instruction & IAS_Masks.First8Bits);
 
-        public static Word To40BitsValue(Word a)
+        protected static Word To40BitsValue(Word a)
         {
             // overflow simulation
 

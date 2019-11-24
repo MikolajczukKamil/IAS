@@ -2,6 +2,9 @@
 using System.Text;
 using System.Numerics;
 using System.Linq;
+
+using IAS.Bus;
+using IAS.Memory;
 using IAS.Components;
 
 namespace IAS
@@ -25,12 +28,13 @@ namespace IAS
         Operation IR = 0;       //  8 bit
 
         IAS_Memory Memory;
+        IAS_Bus Bus = new IAS_Bus();
 
         bool RightInstruction = false;
 
         public IAS_Machine(Word[] code, bool copy = true)
         {
-            Memory = new IAS_Memory(code, copy);
+            Memory = new IAS_Memory(code, Bus, copy);
         }
 
         public void ManualJumpTo(Address address)
@@ -61,7 +65,7 @@ namespace IAS
 
         void Decode()
         {
-            IR = (Operation)(IBR & MaskFirst8Bits);
+            IR = (Operation)(IBR & IAS_Masks.First8Bits);
             MAR = (Address)(IBR >> 8);
         }
 
@@ -115,7 +119,7 @@ namespace IAS
                         Instruction left = GetLeftInstruction(MBR);
                         Instruction right = GetRightInstruction(MBR);
 
-                        Address newAddress = (Address)(AC & MaskFirst12Bits);
+                        Address newAddress = (Address)(AC & IAS_Masks.First12Bits);
                         MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOpCode(left), newAddress), right);
 
                         WriteMemory();
@@ -130,7 +134,7 @@ namespace IAS
                         Instruction left = GetLeftInstruction(MBR);
                         Instruction right = GetRightInstruction(MBR);
 
-                        Address newAddress = (Address)(AC & MaskFirst12Bits);
+                        Address newAddress = (Address)(AC & IAS_Masks.First12Bits);
                         MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOpCode(right), newAddress));
 
                         WriteMemory();
@@ -266,7 +270,7 @@ namespace IAS
 
                         BigInteger mul = new BigInteger(MBR) * MQ;
 
-                        MQ = To40BitsValue((Word)(mul & MaskFirst40Bits));
+                        MQ = To40BitsValue((Word)(mul & IAS_Masks.First40Bits));
 
                         AC = To40BitsValue((Word)(mul >> 40));
 
@@ -306,27 +310,36 @@ namespace IAS
 
         void ReadMemory()
         {
-            MBR = Memory.GetWord(MAR);
+            Bus.Address = MAR;
+            Bus.Control = IAS_Memory.MR;
+
+            Memory.Do();
+
+            MBR = Bus.Data;
         }
 
         void WriteMemory()
         {
-            Memory.SetWord(MAR, MBR);
-        }
+            Bus.Data = MBR;
+            Bus.Address = MAR;
+            Bus.Control = IAS_Memory.MW;
 
-        static Operation[] Jumps = {
-            IAS_Codes.JUMP_L,
-            IAS_Codes.JUMP_R,
-            IAS_Codes.JUMP_M_L,
-            IAS_Codes.JUMP_M_R,
-            IAS_Codes.JUMP_P_L,
-            IAS_Codes.JUMP_P_R,
-            IAS_Codes.JUMP_P_M_L,
-            IAS_Codes.JUMP_P_M_R
-        };
+            Memory.Do();
+        }
 
         public bool Done()
         {
+            Operation[] Jumps = {
+                IAS_Codes.JUMP_L,
+                IAS_Codes.JUMP_M_L,
+                IAS_Codes.JUMP_P_L,
+                IAS_Codes.JUMP_P_M_L,
+                IAS_Codes.JUMP_R,
+                IAS_Codes.JUMP_M_R,
+                IAS_Codes.JUMP_P_R,
+                IAS_Codes.JUMP_P_M_R   
+            };
+
             Word _MBR = MBR;
             Instruction _IBR = IBR;
             Address _PC = PC;
