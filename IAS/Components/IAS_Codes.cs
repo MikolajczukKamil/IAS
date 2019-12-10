@@ -47,23 +47,27 @@ namespace IAS
 
         public static Instruction Instruction(Operation opCode, Address address = 0)
         {
-            Instruction instrution = ((Instruction)address) << 8;
+            // [opCode, address]
+            address &= IAS_Masks.First12Bits;
 
-            instrution |= opCode;
+            Instruction instrution = ((Instruction)opCode) << 12;
 
-            return instrution & IAS_Masks.First20Bits;
+            instrution |= address;
+
+            return instrution;
         }
 
         public static Word Word(Instruction leftInstruction, Instruction rightInstruction)
         {
+            // [leftInstruction, rightInstruction]
             leftInstruction &= IAS_Masks.First20Bits;
             rightInstruction &= IAS_Masks.First20Bits;
 
-            Word instrution = leftInstruction;
+            Word instrutionWord = ((Word)leftInstruction) << 20;
 
-            instrution |= ((Word)rightInstruction) << 20;
+            instrutionWord |= rightInstruction;
 
-            return instrution;
+            return instrutionWord;
         }
 
         public static Word Word(long data) => To40BitsValue(data);

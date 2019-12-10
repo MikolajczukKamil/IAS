@@ -117,7 +117,7 @@ namespace Symulator_IAS.Example
 
                         while ((key != 'x' && key != 'X'))
                         {
-                            if(!machine.Done())
+                            if(!machine.IsDone())
                             {
                                 counter++;
                                 machine.Step();

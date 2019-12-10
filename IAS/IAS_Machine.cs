@@ -65,8 +65,8 @@ namespace IAS
 
         void Decode()
         {
-            IR = (Operation)(IBR & IAS_Masks.First8Bits);
-            MAR = (Address)(IBR >> 8);
+            IR = GetOpCode(IBR);
+            MAR = GetAddress(IBR);
         }
 
         void Execiute()
@@ -272,7 +272,7 @@ namespace IAS
 
                         MQ = To40BitsValue((Word)(mul & IAS_Masks.First40Bits));
 
-                        AC = To40BitsValue((Word)(mul >> 40));
+                        AC = To40BitsValue((Word)(mul >> 40) & IAS_Masks.First40Bits);
 
                         return;
                     }
@@ -327,7 +327,7 @@ namespace IAS
             Memory.Do();
         }
 
-        public bool Done()
+        public bool IsDone()
         {
             Operation[] Jumps = {
                 IAS_Codes.JUMP_L,
