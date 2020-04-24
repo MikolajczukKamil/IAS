@@ -1,11 +1,7 @@
 # Maszyna IAS
-<p>Symulator maszyny IAS zwanej też maszyną von Neumanna</p>
-[Wikipedia/maszyna IAS](https://en.wikipedia.org/wiki/IAS_machine)
 
-<p>Oparta na architekturze von Neumana</p>
-[Wikipedia/architektura von Neumana](https://en.wikipedia.org/wiki/Von_Neumann_architecture)
-
-Markup : Ala
+<p>Symulator maszyny IAS zwanej też maszyną von Neumanna (https://en.wikipedia.org/wiki/IAS_machine)</p>
+<p>Oparta na architekturze von Neumana (https://en.wikipedia.org/wiki/Von_Neumann_architecture)</p>
 
 ## Przykład, suma od 1 do n
 
