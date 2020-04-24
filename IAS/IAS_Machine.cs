@@ -14,34 +14,95 @@ namespace IAS
     using Address = UInt16;
     using Operation = Byte;
 
+    /// <summary>
+    /// IAS machine model (von Neumann machine)
+    /// Simulates the work of the IAS machine
+    /// more: 
+    /// https://en.wikipedia.org/wiki/IAS_machine,
+    /// https://en.wikipedia.org/wiki/Von_Neumann_architecture
+    /// </summary>
     public class IAS_Machine : IAS_Helpers
     {
-        // AC
-        Word AC = 0;            // 40 bit
-        Word MQ = 0;            // 40 bit
-        Word MBR = 0;           // 40 bit
+        #region AC
 
-        // CC
-        Instruction IBR = 0;    // 20 bit
-        Address PC = 0;         // 12 bit
-        Address MAR = 0;        // 12 bit
-        Operation IR = 0;       //  8 bit
+        /// <summary>
+        /// AC register, Word (40 bit)
+        /// </summary>
+        Word AC = 0;
 
+        /// <summary>
+        /// MQ register, Word (40 bit)
+        /// </summary>
+        Word MQ = 0;
+
+        /// <summary>
+        /// MBR register, Word (40 bit)
+        /// </summary>
+        Word MBR = 0;
+
+        #endregion
+
+        #region CC
+
+        /// <summary>
+        /// IBR register, Instruction (20 bit)
+        /// </summary>
+        Instruction IBR = 0;
+
+        /// <summary>
+        /// PC register, Address (12 bit)
+        /// </summary>
+        Address PC = 0;
+
+        /// <summary>
+        /// MAR register, Address (12 bit)
+        /// </summary>
+        Address MAR = 0;
+
+        /// <summary>
+        /// IR register, Operation (8 bit)
+        /// </summary>
+        Operation IR = 0;
+
+        #endregion
+
+        /// <summary>
+        /// Memory of machine
+        /// </summary>
         IAS_Memory Memory;
+
+        /// <summary>
+        /// Inside Bus
+        /// </summary>
         IAS_Bus Bus = new IAS_Bus();
 
+        /// <summary>
+        /// Instruction cycle (Left, Rigth)
+        /// </summary>
         bool RightInstruction = false;
 
+        /// <summary>
+        /// New IAS machine
+        /// </summary>
+        /// <param name="code">Array od machine code to run</param>
+        /// <param name="copy">Copy memory or use orginal</param>
         public IAS_Machine(Word[] code, bool copy = true)
         {
             Memory = new IAS_Memory(code, Bus, copy);
         }
 
+        /// <summary>
+        /// Manuall jump to n line of machine code
+        /// </summary>
+        /// <param name="address">Address in memmory to jump to</param>
         public void ManualJumpTo(Address address)
         {
             PC = address;
         }
 
+        /// <summary>
+        /// Machine step, like clock circle
+        /// </summary>
         public void Step()
         {
             Fetch();
@@ -49,6 +110,9 @@ namespace IAS
             Execiute();
         }
 
+        /// <summary>
+        /// Fetch faze, first
+        /// </summary>
         void Fetch()
         {
             MAR = PC;
@@ -63,12 +127,18 @@ namespace IAS
             RightInstruction = !RightInstruction;
         }
 
+        /// <summary>
+        /// Decode faze, second
+        /// </summary>
         void Decode()
         {
-            IR = GetOpCode(IBR);
+            IR = GetOperationCode(IBR);
             MAR = GetAddress(IBR);
         }
 
+        /// <summary>
+        /// Execiute faze, last
+        /// </summary>
         void Execiute()
         {
             switch (IR)
@@ -120,7 +190,7 @@ namespace IAS
                         Instruction right = GetRightInstruction(MBR);
 
                         Address newAddress = (Address)(AC & IAS_Masks.First12Bits);
-                        MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOpCode(left), newAddress), right);
+                        MBR = IAS_Codes.Word(IAS_Codes.Instruction(GetOperationCode(left), newAddress), right);
 
                         WriteMemory();
 
@@ -135,7 +205,7 @@ namespace IAS
                         Instruction right = GetRightInstruction(MBR);
 
                         Address newAddress = (Address)(AC & IAS_Masks.First12Bits);
-                        MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOpCode(right), newAddress));
+                        MBR = IAS_Codes.Word(left, IAS_Codes.Instruction(GetOperationCode(right), newAddress));
 
                         WriteMemory();
 
@@ -308,25 +378,35 @@ namespace IAS
             throw new IASExeciuteException($"Operation not found 0b{Convert.ToString(IR, 2).PadLeft(8, '0')}", IR);
         }
 
+        /// <summary>
+        /// Read memory from inside bus to MBR
+        /// </summary>
         void ReadMemory()
         {
             Bus.Address = MAR;
             Bus.Control = IAS_Memory.MR;
 
-            Memory.Do();
+            Memory.Step();
 
             MBR = Bus.Data;
         }
 
+        /// <summary>
+        /// Write to memory from MBR
+        /// </summary>
         void WriteMemory()
         {
             Bus.Data = MBR;
             Bus.Address = MAR;
             Bus.Control = IAS_Memory.MW;
 
-            Memory.Do();
+            Memory.Step();
         }
 
+        /// <summary>
+        /// Check halt state = machine is in infinite loop
+        /// </summary>
+        /// <returns>Current state</returns>
         public bool IsDone()
         {
             Operation[] Jumps = {
@@ -369,10 +449,28 @@ namespace IAS
             return done;
         }
 
-        public Word[] GetMemory(bool copy = true) => Memory.GetInstructions(copy);
+        /// <summary>
+        /// Get machine code in memory
+        /// </summary>
+        /// <param name="copy">Copy instructions or return orginal</param>
+        /// <returns>Current machine code</returns>
+        public Word[] GetMemory(bool copy = true) {
+            return Memory.GetInstructions(copy);
+        }
 
-        public override string ToString() => ToString(-1);
+        /// <summary>
+        /// Default to string, show all memory
+        /// </summary>
+        /// <returns>Machine state description</returns>
+        public override string ToString() {
+            return ToString(-1);
+        }
 
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <param name="manyInstructions">Many instructions to show, negative value means all</param>
+        /// <returns>Machine state description</returns>
         public string ToString(int manyInstructions)
         {
             StringBuilder description = new StringBuilder();
@@ -382,7 +480,7 @@ namespace IAS
             description.AppendLine($" MQ: {MQ}");
             description.AppendLine($" Memory:");
 
-            description.AppendLine(Memory.ToString(manyInstructions));
+            description.AppendLine(Memory.ToString((Address) manyInstructions));
 
             return description.ToString();
         }

@@ -10,23 +10,54 @@ namespace IAS.Memory
     using Address = UInt16;
     using Operation = Byte;
 
+    /// <summary>
+    /// IAS component - Memory
+    /// </summary>
     class IAS_Memory : IAS_Helpers
     {
-        public static Address MaxSize = 1000;
-        public static Operation MR = 1;
-        public static Operation MW = 2;
+        /// <summary>
+        /// Max memory capacity in Words, orginal machine has 2^10 = 1024 Words length
+        /// </summary>
+        public const Address MaxSize = 1024;
 
+        /// <summary>
+        /// Memory MR sygnal
+        /// </summary>
+        public const Operation MR = 0;
+
+        /// <summary>
+        /// Memory MW sygnal
+        /// </summary>
+        public const Operation MW = 1;
+
+        /// <summary>
+        /// Machine code
+        /// </summary>
         Word[] Memory;
+
+        /// <summary>
+        /// Length od Memory
+        /// </summary>
         Address Length;
+
+        /// <summary>
+        /// Inside Bus, comunication with main machine
+        /// </summary>
         IAS_Bus Bus;
 
+        /// <summary>
+        /// New IAS memory
+        /// </summary>
+        /// <param name="code">Machine code to store</param>
+        /// <param name="bus">Bus to comunicate with main machine</param>
+        /// <param name="copy">Copy machine code or use orginal</param>
         public IAS_Memory(Word[] code, IAS_Bus bus, bool copy)
         {
             Bus = bus;
             Length = (Address)code.Length;
 
             if (Length > MaxSize)
-                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", -1);
+                throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", 0);
 
             Memory = copy ? new Word[Length] : code;
 
@@ -34,29 +65,44 @@ namespace IAS.Memory
                 Memory[i] = To40BitsValue(code[i]);
         }
 
-        public void Do()
+        /// <summary>
+        /// Machine step, like clock circle
+        /// </summary>
+        public void Step()
         {
-            if(Bus.Control == MR)
+            switch(Bus.Control)
             {
-                CheckAddress(Bus.Address);
+                case MR:
+                    CheckAddress(Bus.Address);
 
-                Bus.Data = Memory[Bus.Address];
-            }
+                    Bus.Data = Memory[Bus.Address];
 
-            if (Bus.Control == MW)
-            {
-                CheckAddress(Bus.Address);
+                    break;
 
-                Memory[Bus.Address] = Bus.Data;
+                case MW:
+                    CheckAddress(Bus.Address);
+
+                    Memory[Bus.Address] = Bus.Data;
+
+                    break;
             }
         }
 
+        /// <summary>
+        /// Check if address is in memory range
+        /// </summary>
+        /// <param name="address">Address to check</param>
         void CheckAddress(Address address)
         {
             if (address >= Length)
                 throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Memory.Length}", address);
         }
 
+        /// <summary>
+        /// Get machine code in memory
+        /// </summary>
+        /// <param name="copy">Copy instructions or return orginal</param>
+        /// <returns>Current machine code</returns>
         public Word[] GetInstructions(bool copy)
         {
             if (!copy) return Memory;
@@ -68,13 +114,26 @@ namespace IAS.Memory
             return copyOfMemory;
         }
 
-        public override string ToString() => ToString(Length);
+        /// <summary>
+        /// Default to string, show all memory
+        /// </summary>
+        /// <returns>Machine code</returns>
+        public override string ToString() {
+            return ToString(Length);
+        }
 
-        public string ToString(int manyInstructions)
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <param name="manyInstructions">Many instructions to show</param>
+        /// <returns>Machine code</returns>
+        public string ToString(Address manyInstructions)
         {
             StringBuilder description = new StringBuilder();
 
-            for (int i = 0; i < Length && i < manyInstructions; i++)
+            manyInstructions = Math.Min(manyInstructions, Length);
+
+            for (int i = 0; i < manyInstructions; i++)
                 description.AppendLine($" {Memory[i]}");
 
             return description.ToString();

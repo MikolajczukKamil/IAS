@@ -8,58 +8,195 @@ namespace IAS
     using Address = UInt16;
     using Operation = Byte;
     
+    /// <summary>
+    /// IAS helper, operations codes, generating machine code
+    /// </summary>
     public class IAS_Codes : IAS_Helpers
     {
-        // Data transfer
-        public const Operation LOAD_M =     1;
-        public const Operation LOAD_D_M =   2;
-        public const Operation LOAD_M_M =   3;
+        #region Codes of instructions
+
+        #region Data transfer
+
+        /// <summary>
+        /// LOAD M(X) -> AC = M(X)
+        /// </summary>
+        public const Operation LOAD_M = 1;
+
+        /// <summary>
+        /// LOAD -M(X) -> AC = -M(X)
+        /// </summary>
+        public const Operation LOAD_D_M = 2;
+
+        /// <summary>
+        /// LOAD |M(X)| -> AC = |M(X)|
+        /// </summary>
+        public const Operation LOAD_M_M = 3;
+
+        /// <summary>
+        /// LOAD -|M(X)| -> AC = -|M(X)|
+        /// </summary>
         public const Operation LOAD_D_M_M = 4;
-        public const Operation LOAD_MQ =    10;
-        public const Operation LOAD_MQ_M =  9;
-        public const Operation STOR_M =     33;
 
-        // Address modification
-        public const Operation STOR_M_L =   18;
-        public const Operation STOR_M_R =   19;
+        /// <summary>
+        /// LOAD MQ -> AC = MQ
+        /// </summary>
+        public const Operation LOAD_MQ = 10;
 
-        // Unconditional jumps
-        public const Operation JUMP_M_L =   13;
-        public const Operation JUMP_L =     13 + 128; // Addded Jump to address
-        public const Operation JUMP_M_R =   14;
-        public const Operation JUMP_R =     14 + 128; // Addded Jump to address
+        /// <summary>
+        /// LOAD MQM(X) -> MQ = M(X)
+        /// </summary>
+        public const Operation LOAD_MQ_M = 9;
 
-        // Conditional jumps
+        /// <summary>
+        /// STOR M(X) -> M(X) = AC
+        /// </summary>
+        public const Operation STOR_M = 33;
+
+        #endregion
+
+        #region Address modification
+
+        /// <summary>
+        /// STOR M(X, 8:19) -> zamień adres lewego rozkazu M(X) na 12 prawych bitów AC
+        /// </summary>
+        public const Operation STOR_M_L = 18;
+
+        /// <summary>
+        /// STOR M(X, 28:39) -> zamień adres prawego rozkazu M(X) na 12 prawych bitów AC
+        /// </summary>
+        public const Operation STOR_M_R = 19;
+
+        #endregion
+
+        #region Unconditional jumps
+
+        /// <summary>
+        /// JUMP M(X, 0:19) -> skocz do lewego rozkazu M(X)
+        /// </summary>
+        public const Operation JUMP_M_L = 13;
+
+        /// <summary>
+        /// JUMP (X, 0:19) -> skocz do lewego rozkazu X
+        /// * Addded, not in the original!
+        /// </summary>
+        public const Operation JUMP_L = 13 + 128;
+
+        /// <summary>
+        /// JUMP M(X, 20:39) -> skocz do prawego rozkazu M(X)
+        /// </summary>
+        public const Operation JUMP_M_R = 14;
+
+        /// <summary>
+        /// JUMP (X, 0:19) -> skocz do prawego rozkazu X
+        /// * Addded, not in the original!
+        /// </summary>
+        public const Operation JUMP_R = 14 + 128;
+
+        #endregion
+
+        #region Conditional jumps
+
+        /// <summary>
+        /// JUMP + M(X, 0:19) -> jeżeli AC >= 0 skocz do lewego rozkazu M(X)
+        /// </summary>
         public const Operation JUMP_P_M_L = 15;
-        public const Operation JUMP_P_L =   15 + 128; // Addded Jump to address
+
+        /// <summary>
+        /// JUMP + (X, 0:19) -> jeżeli AC >= 0 skocz do lewego rozkazu X
+        /// * Addded, not in the original!
+        /// </summary>
+        public const Operation JUMP_P_L = 15 + 128; // Addded Jump to address
+
+        /// <summary>
+        /// JUMP + M(X, 20:39) -> jeżeli AC >= 0 skocz do prawego rozkazu M(X)
+        /// </summary>
         public const Operation JUMP_P_M_R = 16;
-        public const Operation JUMP_P_R =   16 + 128; // Addded Jump to address
 
-        // Arithmetic
-        public const Operation ADD_M =      5;
-        public const Operation ADD_M_M =    7;
-        public const Operation SUB_M =      6;
-        public const Operation SUB_M_M =    8;
-        public const Operation MUL_M =      11;
-        public const Operation DIV_M =      12;
-        public const Operation LSH =        20;
-        public const Operation RSH =        21;
+        /// <summary>
+        /// JUMP + (X, 0:19) -> jeżeli AC >= 0 skocz do prawego rozkazu X
+        /// * Addded, not in the original!
+        /// </summary>
+        public const Operation JUMP_P_R = 16 + 128; // Addded Jump to address
 
-        public static Instruction Instruction(Operation opCode, Address address = 0)
+        #endregion
+
+        #region Arithmetic
+
+        /// <summary>
+        /// ADD M(X) -> AC = AC + M(X)
+        /// </summary>
+        public const Operation ADD_M = 5;
+
+        /// <summary>
+        /// ADD |M(X)| -> AC = AC + |M(X)|
+        /// </summary>
+        public const Operation ADD_M_M = 7;
+
+        /// <summary>
+        /// SUB M(X) -> AC = AC - M(X)
+        /// </summary>
+        public const Operation SUB_M = 6;
+
+        /// <summary>
+        /// SUB |M(X)| -> AC = AC - |M(X)|
+        /// </summary>
+        public const Operation SUB_M_M = 8;
+
+        /// <summary>
+        /// MUL M(X) -> AC:MQ = MQ * M(X)
+        /// </summary>
+        public const Operation MUL_M = 11;
+
+        /// <summary>
+        /// DIV M(X) -> MQ = AC / M(X); AC = AC % M(X)
+        /// </summary>
+        public const Operation DIV_M = 12;
+
+        /// <summary>
+        /// LSH -> AC = AC << 1
+        /// </summary>
+        public const Operation LSH = 20;
+
+        /// <summary>
+        /// RSH -> AC = AC >> 1
+        /// </summary>
+        public const Operation RSH = 21;
+
+        #endregion
+
+        #endregion
+
+        #region Generating machine code
+
+        /// <summary>
+        /// Geterate part of machine code part - instruction - half of word
+        /// </summary>
+        /// <param name="operationCode">Operation code</param>
+        /// <param name="address">Address</param>
+        /// <returns>Instruction of machine code</returns>
+        public static Instruction Instruction(Operation operationCode, Address address = 0)
         {
-            // [opCode, address]
+            // Instruction = [operationCode, address]
+
             address &= IAS_Masks.First12Bits;
 
-            Instruction instrution = ((Instruction)opCode) << 12;
+            Instruction instrution = ((Instruction)operationCode) << 12;
 
             instrution |= address;
 
             return instrution;
         }
 
+        /// <summary>
+        /// Geterate part of machine code part - full word
+        /// </summary>
+        /// <param name="leftInstruction">First instruction</param>
+        /// <param name="rightInstruction">Second instruction</param>
+        /// <returns>Word of machine code</returns>
         public static Word Word(Instruction leftInstruction, Instruction rightInstruction)
         {
-            // [leftInstruction, rightInstruction]
+            // Word = [leftInstruction, rightInstruction]
+
             leftInstruction &= IAS_Masks.First20Bits;
             rightInstruction &= IAS_Masks.First20Bits;
 
@@ -70,8 +207,22 @@ namespace IAS
             return instrutionWord;
         }
 
+        /// <summary>
+        /// Translate constant into word of machine code
+        /// </summary>
+        /// <param name="data">Constant</param>
+        /// <returns>Word of machine code</returns>
         public static Word Word(long data) => To40BitsValue(data);
 
-        public static Word Word() => 0;
+        /// <summary>
+        /// Empty Word - 0
+        /// </summary>
+        /// <returns>Word of machine code</returns>
+        public static Word Word()
+        {
+            return 0;
+        } 
+
+        #endregion
     };
 }

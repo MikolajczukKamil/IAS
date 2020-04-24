@@ -1,7 +1,5 @@
-﻿using System;
-using IAS;
-using Symulator_IAS.Test;
-using Symulator_IAS.Example;
+﻿using IAS;
+using Symulator_IAS.Examples;
 
 namespace Symulator_IAS
 {
@@ -9,8 +7,9 @@ namespace Symulator_IAS
     {
         static void Main(string[] args)
         {
-            //Test_Machine.Run();
-            Example_OS.Run();
+            Example_OS os = new Example_OS();
+
+            os.Run();
         }
     }
 }

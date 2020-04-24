@@ -1,13 +1,19 @@
 ﻿using System;
 using IAS;
 
-namespace Symulator_IAS.Example
+namespace Symulator_IAS.Examples
 {
     using IASWord = Int64;
-    using IASInstruction = UInt32;
 
+    /// <summary>
+    /// Example IAS programs code 
+    /// </summary>
     class ExampleCodes : IAS_Codes
     {
+        /// <summary>
+        /// Task 1 from Lecture, sum from 1 to n, with orginal mistake
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Zad1SumaOd1DoN() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -36,6 +42,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Task 1 from Lecture, sum from 1 to n, correct
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Zad1SumaOd1DoNPoprawne() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -68,6 +78,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Task 2 from Lecture, sum from 1 to n, used formula
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Zad2SumaLiczbOd1DoNzUzyciemWzoru() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -94,6 +108,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Task 3 from Lecture, factorial
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Zad3Silnia() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -130,6 +148,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Fibonacci sequence
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Fibonacci() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -174,6 +196,10 @@ namespace Symulator_IAS.Example
             
         };
 
+        /// <summary>
+        /// Squere of number
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] Squere() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -191,6 +217,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Euclidean algorithm
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] EuclideanAlgorithm() => new IASWord[]
         {
             Word(35), // n = M(0) <>         // 0
@@ -223,6 +253,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Sum squers from 1 to n, use some kind of function
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] SumSquereTo() => new IASWord[]
         {
             Word(1), // n = M(0) <>         // 0
@@ -283,6 +317,10 @@ namespace Symulator_IAS.Example
             )
         };
 
+        /// <summary>
+        /// Test with error of divide by zero
+        /// </summary>
+        /// <returns>IAS machine code</returns>
         public static IASWord[] DivideByZero() => new IASWord[]
         {
             Word(0),                        // 0 // const 0 = M(0)

@@ -7,38 +7,71 @@ namespace IAS.Components
     using Address = UInt16;
     using Operation = Byte;
 
+    /// <summary>
+    /// IAS machine helpers
+    /// </summary>
     public abstract class IAS_Helpers
     {
+        /// <summary>
+        /// Max value possible to store in word of data
+        /// </summary>
         static Word MaxValue = IAS_Masks.First39Bits;
+
+        /// <summary>
+        /// Min value possible to store in word of data
+        /// </summary>
         static Word MinValue = ~MaxValue;
 
+        /// <summary>
+        /// Get left instruction from word of data
+        /// </summary>
+        /// <param name="word">Word</param>
+        /// <returns>Instruction</returns>
         protected static Instruction GetLeftInstruction(Word word) => (Instruction)(word >> 20);
 
+        /// <summary>
+        /// Get right instruction from word of data
+        /// </summary>
+        /// <param name="word">Word</param>
+        /// <returns>Instruction</returns>
         protected static Instruction GetRightInstruction(Word word) => (Instruction)word & IAS_Masks.First20Bits;
 
-        protected static Operation GetOpCode(Instruction instruction) => (Operation)(instruction >> 12);
+        /// <summary>
+        /// Get operation code from instruction
+        /// </summary>
+        /// <param name="instruction">Instruction</param>
+        /// <returns>Operation code</returns>
+        protected static Operation GetOperationCode(Instruction instruction) => (Operation)(instruction >> 12);
 
+        /// <summary>
+        /// Get address code from instruction
+        /// </summary>
+        /// <param name="instruction"></param>
+        /// <returns>Address</returns>
         protected static Address GetAddress(Instruction instruction) => (Address)(instruction & IAS_Masks.First12Bits);
 
-        protected static Word To40BitsValue(Word a)
+        /// <summary>
+        /// Translate value to Word length value (40 bits) with overflow effect
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Word length value</returns>
+        protected static Word To40BitsValue(Word value)
         {
-            // overflow simulation
-
-            if (a > MaxValue)
+            if (value > MaxValue)
             {
-                long diff = a - MaxValue;
+                long diff = value - MaxValue;
 
                 return MinValue + (diff - 1);
             }
 
-            if(a < MinValue)
+            if(value < MinValue)
             {
-                long diff = MinValue - a;
+                long diff = MinValue - value;
 
                 return MaxValue - (diff - 1);
             }
 
-            return a;
+            return value;
         }
     }
 }

@@ -1,10 +1,16 @@
 ﻿using System;
 using IAS;
 
-namespace Symulator_IAS.Example
+namespace Symulator_IAS.Examples
 {
+    /// <summary>
+    /// Simple IAS based Operating System
+    /// </summary>
     class Example_OS : ExampleCodes
     {
+        /// <summary>
+        /// Programs to run on IAS
+        /// </summary>
         static ProgramOn_IAS[] programs = {
             new ProgramOn_IAS(
                 "Suma liczb od 1 do n + 1                max 1'048'574        wynik w m[3]", 
@@ -52,7 +58,10 @@ namespace Symulator_IAS.Example
             )
         };
 
-        public static void Run()
+        /// <summary>
+        /// Run OS
+        /// </summary>
+        public void Run()
         {
             bool error = false;
 
