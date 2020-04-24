@@ -38,7 +38,7 @@ namespace IAS.Memory
         /// <summary>
         /// Length od Memory
         /// </summary>
-        Address Length;
+        public Address Length { get; private set; }
 
         /// <summary>
         /// Inside Bus, comunication with main machine
@@ -57,20 +57,36 @@ namespace IAS.Memory
             Length = (Address)code.Length;
 
             if (Length > MaxSize)
+            {
                 throw new IASMemoryException($"Instraction limit has been reached, max {MaxSize}, used {code.Length}", 0);
+            }
 
             Memory = copy ? new Word[Length] : code;
 
             for (int i = 0; i < Length; i++)
+            {
                 Memory[i] = To40BitsValue(code[i]);
+            }
+        }
+
+        /// <summary>
+        /// Check if address is in memory range
+        /// </summary>
+        /// <param name="address">Address to check</param>
+        void CheckAddress(Address address)
+        {
+            if (address >= Length)
+            {
+                throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Memory.Length}", address);
+            }
         }
 
         /// <summary>
         /// Machine step, like clock circle
         /// </summary>
-        public void Step()
+        public void Cycle()
         {
-            switch(Bus.Control)
+            switch (Bus.Control)
             {
                 case MR:
                     CheckAddress(Bus.Address);
@@ -86,32 +102,6 @@ namespace IAS.Memory
 
                     break;
             }
-        }
-
-        /// <summary>
-        /// Check if address is in memory range
-        /// </summary>
-        /// <param name="address">Address to check</param>
-        void CheckAddress(Address address)
-        {
-            if (address >= Length)
-                throw new IASMemoryException($"Program try to access memory[{address}] but memory length is {Memory.Length}", address);
-        }
-
-        /// <summary>
-        /// Get machine code in memory
-        /// </summary>
-        /// <param name="copy">Copy instructions or return orginal</param>
-        /// <returns>Current machine code</returns>
-        public Word[] GetInstructions(bool copy)
-        {
-            if (!copy) return Memory;
-
-            Word[] copyOfMemory = new Word[Length];
-
-            Array.Copy(Memory, copyOfMemory, Length);
-
-            return copyOfMemory;
         }
 
         /// <summary>
