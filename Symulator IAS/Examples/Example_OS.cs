@@ -126,10 +126,10 @@ namespace Symulator_IAS.Examples
 
                         while ((key != 'x' && key != 'X'))
                         {
-                            if(!machine.IsDone())
+                            if(!machine.HaltState)
                             {
                                 counter++;
-                                machine.Step();
+                                machine.Cycle();
 
                                 Console.WriteLine($"Krok: {counter}");
                                 Console.WriteLine(machine.ToString(program.MemoryToShow));

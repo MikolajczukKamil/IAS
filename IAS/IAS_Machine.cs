@@ -23,20 +23,20 @@ namespace IAS
     /// </summary>
     public class IAS_Machine : IAS_Helpers
     {
-        #region AC
+        #region CA
 
         /// <summary>
-        /// AC register, Word (40 bit)
+        /// Accumulator register, Word (40 bit)
         /// </summary>
         Word AC = 0;
 
         /// <summary>
-        /// MQ register, Word (40 bit)
+        /// multiply-quotient register, Word (40 bit)
         /// </summary>
         Word MQ = 0;
 
         /// <summary>
-        /// MBR register, Word (40 bit)
+        /// memory buffer register, Word (40 bit)
         /// </summary>
         Word MBR = 0;
 
@@ -45,26 +45,28 @@ namespace IAS
         #region CC
 
         /// <summary>
-        /// IBR register, Instruction (20 bit)
+        /// instruction buffer register, Instruction (20 bit)
         /// </summary>
         Instruction IBR = 0;
 
         /// <summary>
-        /// PC register, Address (12 bit)
+        /// program counter, Address (12 bit)
         /// </summary>
         Address PC = 0;
 
         /// <summary>
-        /// MAR register, Address (12 bit)
+        /// memory address register, Address (12 bit)
         /// </summary>
         Address MAR = 0;
 
         /// <summary>
-        /// IR register, Operation (8 bit)
+        /// insruction register, Operation (8 bit)
         /// </summary>
         Operation IR = 0;
 
         #endregion
+
+        #region Components
 
         /// <summary>
         /// Memory of machine
@@ -76,10 +78,17 @@ namespace IAS
         /// </summary>
         IAS_Bus Bus = new IAS_Bus();
 
+        #endregion
+
         /// <summary>
-        /// Instruction cycle (Left, Rigth)
+        /// Require Left Instruction - eg. not right jump
         /// </summary>
-        bool RightInstruction = false;
+        bool RequireLeftInstruction = true;
+
+        /// <summary>
+        /// Is machine in halt state <=> inf loop, jump to this place
+        /// </summary>
+        public bool HaltState { get; private set; } = false;
 
         /// <summary>
         /// New IAS machine
@@ -95,52 +104,88 @@ namespace IAS
         /// Manuall jump to n line of machine code
         /// </summary>
         /// <param name="address">Address in memmory to jump to</param>
-        public void ManualJumpTo(Address address)
+        /// <param name="ToRightInstruction">To right instruction?</param>
+        public void ManualJumpTo(Address address, bool ToRightInstruction = false)
         {
+            IBR = 0;
             PC = address;
+            RequireLeftInstruction = !ToRightInstruction;
+
+            HaltState = false;
         }
 
         /// <summary>
-        /// Machine step, like clock circle
+        /// Read memory, move M[MAR] to MBR
         /// </summary>
-        public void Step()
+        void MemoryRead()
         {
-            Fetch();
-            Decode();
-            Execiute();
+            Bus.Address = MAR;
+            Bus.Control = IAS_Memory.MR;
+
+            Memory.Cycle();
+
+            MBR = Bus.Data;
         }
 
         /// <summary>
-        /// Fetch faze, first
+        /// Write memory, move MBR to M[MAR]
         /// </summary>
-        void Fetch()
+        void WriteMemory()
         {
-            MAR = PC;
+            Bus.Data = MBR;
+            Bus.Address = MAR;
+            Bus.Control = IAS_Memory.MW;
 
-            ReadMemory();
+            Memory.Cycle();
+        }
 
-            if (RightInstruction)
+        /// <summary>
+        /// Fetch sub cycle of instruction cycle
+        /// </summary>
+        void FetchSubCycle()
+        {
+            if (IBR != 0)
+            {
+                IR = GetOperationCode(IBR);
+                MAR = GetAddress(IBR);
+
+                IBR = 0;
                 PC++;
+            }
+            else
+            {
+                MAR = PC;
 
-            IBR = RightInstruction ? GetRightInstruction(MBR) : GetLeftInstruction(MBR);
+                MemoryRead();
 
-            RightInstruction = !RightInstruction;
+                if (RequireLeftInstruction)
+                {
+                    IBR = GetRightInstruction(MBR);
+
+                    Instruction leftInstruction = GetLeftInstruction(MBR);
+
+                    IR = GetOperationCode(leftInstruction);
+                    MAR = GetAddress(leftInstruction);
+                }
+                else
+                {
+                    Instruction rightInstruction = GetRightInstruction(MBR);
+
+                    IR = GetOperationCode(rightInstruction);
+                    MAR = GetAddress(rightInstruction);
+
+                    PC++;
+                }
+            }
         }
 
         /// <summary>
-        /// Decode faze, second
+        /// Execute sub cycle of instruction cycle
         /// </summary>
-        void Decode()
+        void ExecuteSubCycle()
         {
-            IR = GetOperationCode(IBR);
-            MAR = GetAddress(IBR);
-        }
+            RequireLeftInstruction = true;
 
-        /// <summary>
-        /// Execiute faze, last
-        /// </summary>
-        void Execiute()
-        {
             switch (IR)
             {
                 #region transfer
@@ -149,7 +194,7 @@ namespace IAS
                     return;
 
                 case IAS_Codes.LOAD_MQ_M:
-                    ReadMemory();
+                    MemoryRead();
                     MQ = MBR;
                     return;
 
@@ -159,22 +204,22 @@ namespace IAS
                     return;
 
                 case IAS_Codes.LOAD_M:
-                    ReadMemory();
+                    MemoryRead();
                     AC = MBR;
                     return;
 
                 case IAS_Codes.LOAD_D_M:
-                    ReadMemory();
+                    MemoryRead();
                     AC = -MBR;
                     return;
 
                 case IAS_Codes.LOAD_M_M:
-                    ReadMemory();
+                    MemoryRead();
                     AC = Math.Abs(MBR);
                     return;
 
                 case IAS_Codes.LOAD_D_M_M:
-                    ReadMemory();
+                    MemoryRead();
                     AC = -Math.Abs(MBR);
                     return;
 
@@ -184,7 +229,7 @@ namespace IAS
 
                 case IAS_Codes.STOR_M_L:
                     {
-                        ReadMemory();
+                        MemoryRead();
 
                         Instruction left = GetLeftInstruction(MBR);
                         Instruction right = GetRightInstruction(MBR);
@@ -199,7 +244,7 @@ namespace IAS
 
                 case IAS_Codes.STOR_M_R:
                     {
-                        ReadMemory();
+                        MemoryRead();
 
                         Instruction left = GetLeftInstruction(MBR);
                         Instruction right = GetRightInstruction(MBR);
@@ -217,18 +262,19 @@ namespace IAS
                 #region skoki-bezwarunkowe
 
                 case IAS_Codes.JUMP_M_L:
-                    RightInstruction = false;
+                    MemoryRead();
 
-                    ReadMemory();
+                    IBR = 0;
 
                     PC = (Address)MBR;
 
                     return;
 
                 case IAS_Codes.JUMP_M_R:
-                    RightInstruction = true;
+                    MemoryRead();
 
-                    ReadMemory();
+                    IBR = 0;
+                    RequireLeftInstruction = false;
 
                     PC = (Address)MBR;
 
@@ -237,14 +283,15 @@ namespace IAS
                 // ADDED !
 
                 case IAS_Codes.JUMP_L:
-                    RightInstruction = false;
+                    IBR = 0;
 
                     PC = MAR;
 
                     return;
 
                 case IAS_Codes.JUMP_R:
-                    RightInstruction = true;
+                    IBR = 0;
+                    RequireLeftInstruction = false;
 
                     PC = MAR;
 
@@ -258,9 +305,9 @@ namespace IAS
 
                     if (AC >= 0)
                     {
-                        RightInstruction = false;
+                        MemoryRead();
 
-                        ReadMemory();
+                        IBR = 0;
 
                         PC = (Address)MBR;
                     }
@@ -271,9 +318,10 @@ namespace IAS
 
                     if (AC >= 0)
                     {
-                        RightInstruction = true;
+                        MemoryRead();
 
-                        ReadMemory();
+                        IBR = 0;
+                        RequireLeftInstruction = false;
 
                         PC = (Address)MBR;
                     }
@@ -286,7 +334,8 @@ namespace IAS
 
                     if (AC >= 0)
                     {
-                        RightInstruction = false;
+                        IBR = 0;
+
                         PC = MAR;
                     }
 
@@ -296,7 +345,9 @@ namespace IAS
 
                     if (AC >= 0)
                     {
-                        RightInstruction = true;
+                        IBR = 0;
+                        RequireLeftInstruction = false;
+
                         PC = MAR;
                     }
 
@@ -307,28 +358,28 @@ namespace IAS
                 #region arytmetyczne
 
                 case IAS_Codes.ADD_M:
-                    ReadMemory();
+                    MemoryRead();
 
                     AC = To40BitsValue(AC + MBR);
 
                     return;
 
                 case IAS_Codes.ADD_M_M:
-                    ReadMemory();
+                    MemoryRead();
 
                     AC = To40BitsValue(AC + Math.Abs(MBR));
 
                     return;
 
                 case IAS_Codes.SUB_M:
-                    ReadMemory();
+                    MemoryRead();
 
                     AC = To40BitsValue(AC - MBR);
 
                     return;
 
                 case IAS_Codes.SUB_M_M:
-                    ReadMemory();
+                    MemoryRead();
 
                     AC = To40BitsValue(AC - Math.Abs(MBR));
 
@@ -336,7 +387,7 @@ namespace IAS
 
                 case IAS_Codes.MUL_M:
                     {
-                        ReadMemory();
+                        MemoryRead();
 
                         BigInteger mul = new BigInteger(MBR) * MQ;
 
@@ -349,9 +400,9 @@ namespace IAS
 
                 case IAS_Codes.DIV_M:
                     {
-                        ReadMemory();
+                        MemoryRead();
 
-                        if(MBR == 0)
+                        if (MBR == 0)
                             throw new IASExeciuteException("Divide by zero", IR);
 
                         MQ = AC / MBR;
@@ -379,90 +430,28 @@ namespace IAS
         }
 
         /// <summary>
-        /// Read memory from inside bus to MBR
+        /// Instruction cycle of IAS, clock
         /// </summary>
-        void ReadMemory()
+        public void Cycle()
         {
-            Bus.Address = MAR;
-            Bus.Control = IAS_Memory.MR;
-
-            Memory.Step();
-
-            MBR = Bus.Data;
-        }
-
-        /// <summary>
-        /// Write to memory from MBR
-        /// </summary>
-        void WriteMemory()
-        {
-            Bus.Data = MBR;
-            Bus.Address = MAR;
-            Bus.Control = IAS_Memory.MW;
-
-            Memory.Step();
-        }
-
-        /// <summary>
-        /// Check halt state = machine is in infinite loop
-        /// </summary>
-        /// <returns>Current state</returns>
-        public bool IsDone()
-        {
-            Operation[] Jumps = {
-                IAS_Codes.JUMP_L,
-                IAS_Codes.JUMP_M_L,
-                IAS_Codes.JUMP_P_L,
-                IAS_Codes.JUMP_P_M_L,
-                IAS_Codes.JUMP_R,
-                IAS_Codes.JUMP_M_R,
-                IAS_Codes.JUMP_P_R,
-                IAS_Codes.JUMP_P_M_R   
-            };
-
-            Word _MBR = MBR;
+            Instruction _PC = PC;
             Instruction _IBR = IBR;
-            Address _PC = PC;
-            Address _MAR = MAR;
-            Operation _IR = IR;
-            bool _RightInstruction = RightInstruction;
 
-            Fetch();
-            Decode();
+            FetchSubCycle();
+            ExecuteSubCycle();
 
-            bool done = false;
-
-            if (Jumps.Contains(IR))
+            if (_PC == PC && _IBR == IBR)
             {
-                Execiute();
-
-                if (PC == _PC && RightInstruction == _RightInstruction) done = true;
+                HaltState = true;
             }
-
-            MBR = _MBR;
-            IBR = _IBR;
-            PC = _PC;
-            MAR = _MAR;
-            IR = _IR;
-            RightInstruction = _RightInstruction;
-
-            return done;
-        }
-
-        /// <summary>
-        /// Get machine code in memory
-        /// </summary>
-        /// <param name="copy">Copy instructions or return orginal</param>
-        /// <returns>Current machine code</returns>
-        public Word[] GetMemory(bool copy = true) {
-            return Memory.GetInstructions(copy);
         }
 
         /// <summary>
         /// Default to string, show all memory
         /// </summary>
         /// <returns>Machine state description</returns>
-        public override string ToString() {
+        public override string ToString()
+        {
             return ToString(-1);
         }
 
@@ -475,14 +464,15 @@ namespace IAS
         {
             StringBuilder description = new StringBuilder();
 
-            description.AppendLine($" IC: {PC}{(RightInstruction ? 'R' : 'L')}");
+            description.AppendLine($" IC: {PC}{(IBR != 0 || !RequireLeftInstruction ? 'R' : 'L')}");
             description.AppendLine($" AC: {AC}");
             description.AppendLine($" MQ: {MQ}");
             description.AppendLine($" Memory:");
 
-            description.AppendLine(Memory.ToString((Address) manyInstructions));
+            description.AppendLine(Memory.ToString((Address)manyInstructions));
 
             return description.ToString();
         }
+
     }
 }
